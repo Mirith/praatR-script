@@ -19,6 +19,10 @@
 # how to get data from one interval from one sound? 
 # go sound by sound, looking for one vowel
 
+# useful things that don't seem to exist in praatR
+# formant listing (19 point measurements of first four formants in interval)
+# get first formant (returns average of interval)
+
 library(PraatR)
 
 path = "C:/praatR/Bitur/grids/ageta-DM-1.TextGrid"
@@ -48,7 +52,9 @@ get_length <- function(grid_path, tier_number, interval_number, label = NULL)
 get_length(path, 1, 2)
 
 # returns a list of intervals measuring formant values
-get_intervals <- function(sound_path, num_intervals, formant)
+# might have to create formanttier or similar object with start/end times
+# from textgrid to actually get formants
+get_formant <- function(file_path, num_samples, formant_level)
 {
     
 }
