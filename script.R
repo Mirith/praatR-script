@@ -59,45 +59,53 @@ get_formant <- function(file_path, num_samples, formant_level)
     
 }
 
-# when passed a text grid, returns start and stop times with interval label
-# as a list
-# helper function for bigger functions that need this functionality
+# when passed a path of a text grid
+# returns start and stop times with interval label as a list within a list
+# everything in that list is a string 
 get_start_end <- function(text_grid)
 {
-    interval_numbers = as.numeric(praat("Get number of intervals...", 
-                                        list(1), 
-                                        input = text_grid, 
-                                        simplify = TRUE))
-    return_list <- c()
+    # stores the total number of intervals in the text grid
+    interval_numbers = as.numeric(
+        praat("Get number of intervals...", # praat command
+              list(1), # 1 = the number of the tier to look at
+              input = text_grid, # path of text grid
+              simplify = TRUE)) # return only number (still a string)
+    # empty, to be filled and returned later
+    return_list <- vector("list")
     
+    # cycles through each interval in the text grid
     for (interval in c(1:interval_numbers))
     {
-        interval_label = praat("Get label of interval...", 
-                               list(1, interval), 
+        # gets the label of the interval
+        interval_label = praat("Get label of interval...", # praat command
+                               list(1, interval), # tier and interval to look at
                                input = text_grid)
+        # if it has a label
         if(interval_label != "")
         {
+            # finds the start point
+            # similar to how Get label of interval... works
             interval_start = praat("Get start point...", 
                                               list(1, interval), 
                                               input = text_grid, 
                                               simplify = TRUE)
+            # and the end point
+            # similar to how Get label of interval... works
             interval_end = praat("Get end point...", 
                                             list(1, interval), 
                                             input = text_grid, 
                                             simplify = TRUE)
         
-        return_list = append(return_list, 
-                             c(interval_label, interval_start, interval_end))
-        
+        # adds the interval label and start/end points to the end of the list
+        index = length(return_list) + 1
+        return_list[[index]] = c(interval_label, interval_start, interval_end)
         }
-        
     }
-    # want different structure, this is just a single list
     return (return_list)
 }
 
 # testing above 
-# get_start_end(path)
+get_start_end(path)
 
 # given sound_path, maps labeled textgrid intervals to sound path
 # will have to do a lot of other thing with info... 
