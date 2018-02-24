@@ -15,17 +15,19 @@ The script will eventually be made of mostly helper functions, for the purposes 
 
 get_length function written and working
 
-get_formant function not written yet (probably need to make FormantTier object with get_start_end outputs)
+get_start_end function written and working 
 
-get_start_end function written and working (output needs to be formatted differently though)
+formant_means written and working
+
+**Note: Does not work for F0**.
 
 need more functionality:
 
-* quartile measuring
+* quartile measuring -- F0 and amplitude
 
-* median measuring
+* median measuring -- formants and amplitude
 
-* averaging
+* mean of F0
 
 Once everything is written out and mostly working, figuring out exactly how to systematically go through all the files will be the next step.  Hopefully that will involve minimal changing of existing code.  
 
