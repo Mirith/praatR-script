@@ -68,7 +68,6 @@ formant_means <- function(sound_path, formants, intervals)
     # cycles through all the formant numbers wanted
     for (formant_number in formants)
     {
-        print(formant_number)
         # cycles through each interval in the intervals list
         for (interval in intervals)
         {        
@@ -97,7 +96,7 @@ formant_means <- function(sound_path, formants, intervals)
     return (means)
 }
 
-formant_means(pathS, c(0,1,2,3), get_start_end(path))
+formant_means(pathS, c(1:3), get_start_end(path))
 
 # when passed a path of a text grid
 # returns start and stop times with interval label as a list within a list
