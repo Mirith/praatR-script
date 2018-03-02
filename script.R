@@ -7,6 +7,7 @@
 # 1st quartile amplitude, F0
 # 3rd quartile amplitude, F0
 # median amplitude, F0
+# peak F0 and amplitude
 
 # deal with formatting outputs later, just get pieces in place
 # eventually want to make a big dataframe for everything to work with
@@ -18,6 +19,7 @@
 # quartile amplitude can call that one... 
 
 # useful things that don't seem to exist in praatR
+# are actually part of formant object queries!
 # formant listing (19 ish point measurements of first four formants in interval)
 # get first formant (returns average of interval)
 
@@ -60,6 +62,7 @@ get_length <- function(grid_path, tier_number, interval_number, label = NULL)
 # sound_path is the location of the sound file
 # formants is a list of the number of formants to take the mean of
 # intervals is the output of get_start_end
+# use temp formant object created for future calculations
 formant_means <- function(sound_path, formants, intervals)
 {
     # list to return later
@@ -96,6 +99,7 @@ formant_means <- function(sound_path, formants, intervals)
     return (means)
 }
 
+# testing 
 formant_means(pathS, c(1:3), get_start_end(path))
 
 # when passed a path of a text grid
@@ -125,20 +129,24 @@ get_start_end <- function(text_grid)
         {
             # finds the start point
             # similar to how Get label of interval... works
-            interval_start = praat("Get start point...", 
+            interval_start = as.numeric(praat("Get start point...", 
                                               list(1, interval), 
                                               input = text_grid, 
-                                              simplify = TRUE)
+                                              simplify = TRUE))
             # and the end point
             # similar to how Get label of interval... works
-            interval_end = praat("Get end point...", 
+            interval_end = as.numeric(praat("Get end point...", 
                                             list(1, interval), 
                                             input = text_grid, 
-                                            simplify = TRUE)
+                                            simplify = TRUE))
         
         # adds the interval label and start/end points to the end of the list
         index = length(return_list) + 1
-        return_list[[index]] = c(interval_label, interval_start, interval_end)
+        
+        to_add_temp = c(interval_start, interval_end)
+        names(to_add_temp) = c(interval_label, interval_label)
+        
+        return_list[[index]] = to_add_temp
         }
     }
     return (return_list)
@@ -147,13 +155,122 @@ get_start_end <- function(text_grid)
 # testing above 
 get_start_end(path)
 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# don't start until sure this is where this functionality should go!
-# given sound_path, maps labeled textgrid intervals to sound path
-# will have to do a lot of other thing with info... 
-# way to save info?
-# might want to do this in main functionality of file with everything else...
-map_start_end <- function(sound_path)
+# quartile and median calculation
+# amplitude
+# needs to loop for each interval in sound from get_start_end path
+quart_med_amp <- function()
+{
+    matrix_path = "C:/praatR/Bitur/audio/test.Matrix"
+    intensity = praat("To Intensity...", 
+                   list(100, # minumum pitch
+                        0, # time step (0 auto)
+                        "yes"), 
+                   input = pathS,
+                   overwrite = TRUE,
+                   output = "C:/praatR/Bitur/audio/inten.Matrix")
+    # divide up desired length by 9 pieces
+    # use interval_split()
+    # and put in list for loop
+    temp = get_start_end(path)
+
+    # accesses the intervals from get_start_end
+    # change hard-coding later
+    temp_list = c(temp[[1]][1], temp[[1]][2])
+    
+    point_list = interval_split(temp_list, 9)
+
+    # empty, to be filled with loop
+    # holds the decibel intensities to be worked with later
+    data_points = c()
+    
+    # loop to fill data_list
+    for (point in point_list)
+    {
+        data_points = append(data_points, 
+                             as.numeric(praat("Get value at time...",
+                                   input = "C:/praatR/Bitur/audio/inten.Matrix",
+                                   list(point,
+                                        "Cubic"),
+                                   simplify = TRUE)))
+    }
+    
+    # sort by value
+    # find median for list
+    # find quartile for list
+    sort(data_points)
+    median = median(data_points)
+    # 2nd and 4th entries are 1st and 3rd quartile respectively
+    quantiles = quantile(data_points)
+    
+    # adds to list, and labels entries
+    return_vals = c(median, quantiles[2], quantiles[4])
+    names(return_vals) = c("median", "1st", "3rd")
+    
+    return (return_vals)
+    
+}
+
+quart_med_amp()
+
+# quartile and median calculation
+# F0
+# needs to loop for each interval in sound from get_start_end path
+quart_med_F0 <- function()
 {
     
 }
+
+# returns max F0 value of interval in FormantTier
+# needs to loop for each interval in sound from get_start_end path
+max_F0 <- function()
+{
+    
+}
+
+# max amplitude value finder
+# for interval in 
+# needs to loop for each interval in sound from get_start_end path
+max_amp <- function()
+{
+    
+}
+
+# takes an interval (two points in time, ie c(2.0, 3.0))
+# and returns a list of points in time split into number_splits points
+# interval_split(c(2, 3), 4)
+# c(2, 2.33, 2.66, 3)
+interval_split <- function(interval, number_splits)
+{
+    # 0 splits = same interval as passed... 
+    if (number_splits == 0)
+    {
+        return (interval)
+    }
+    
+    # first and last point returned should be passed points
+    # check that second point passed is bigger than the first, ie no negative time
+    if (interval[1] < interval[2])
+    {
+        # empty, filled by loop 
+        return_vals = c(interval[1])
+        
+        # finds value to increment by 
+        # total time divided by number of splits wanted minus one, 
+        # to get last value in array
+        increment = (interval[2] - interval[1])/(number_splits - 1)
+        
+        # first time to add to loop
+        time = interval[1] + increment
+        for (point in c(1: (number_splits - 1)))
+        {
+            return_vals = append(return_vals, time)
+            time = time + increment
+        }
+        
+        return (return_vals)
+    }
+    
+}
+
+# testing above
+interval_split(c(2,49), 5)
