@@ -3,13 +3,13 @@ Uses [PraatR](https://github.com/usagi5886/PraatR), made by [Aaron Albin](http:/
 
 Extracts relevant data from annotated sound files (annotated in Praat) and analyzes that data.  (Formant values, vowel length, average amplitude, etc).
 
-Very much a work in progress right now.  
+Work in progress right now.  Currently writing functions, and will piece them together later.  
 
 This script requires PraatR to be working, as well as R/some text editor for R.  (I'm using RSTudio). 
 
 Also, there can be no spaces in any directory name.  The spaces will mess up PraatR.  Really.  
 
-The script will eventually be made of mostly helper functions, for the purposes of modularity.  
+The script will be made of mostly helper functions, for the purposes of modularity.  
 
 # Progess
 
@@ -19,15 +19,17 @@ get_start_end function written and working
 
 formant_means written and working
 
-**Note: Does not work for F0**.
+quart_med_amp written and working -- needs to account for multiple intervals per file though
 
-need more functionality:
+interval_split written and working.  
 
-* quartile measuring -- F0 and amplitude
+to do:
 
-* median measuring -- formants and amplitude
+* F0 quartile and median measures
 
 * mean of F0
+
+* mean of amplitude 
 
 Once everything is written out and mostly working, figuring out exactly how to systematically go through all the files will be the next step.  Hopefully that will involve minimal changing of existing code.  
 
@@ -38,7 +40,7 @@ Basically what the MIT license says, I guess.
 ```
 MIT License
 
-Copyright (c) [year] [fullname]
+2018
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
