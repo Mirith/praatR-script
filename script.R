@@ -22,9 +22,16 @@ rm(list = ls())
 
 library(PraatR)
 
-path = "C:/praatR/Bitur/grids/asak-DM-1.TextGrid"
-pathS = "C:/praatR/Bitur/audio/asak-DM-1.wav"
+# text grid and sound path should be automatically grabbed later
+# following are hard-coded for testing purposes
+# path for text grid file
+path = "C:/praatR/Bitur/grids/abua-DM-1.TextGrid"
+# path for sound file
+pathS = "C:/praatR/Bitur/audio/abua-DM-1.wav"
+# path for outputs of converted files
+# will be overwritten many times as script runs
 out_path = "C:/praatR/Bitur/audio/inten.Matrix"
+pitch_path = "C:/praatR/Bitur/audio/untitled.Pitch"
 
 # takes a sound and text grid and returns the given interval's length
 # grid_path = full path (no spaces allowed) of the text grid
@@ -208,25 +215,150 @@ quart_med_amp(pathS)
 # quartile and median calculation
 # F0
 # needs to loop for each interval in sound from get_start_end path
-quart_med_F0 <- function()
+# quart_med_F0 <- function(sound_path)
+# {
+#     # change from intensity to f0 thing?
+#     praat("To Pitch...", 
+#           list(0, # time step 
+#                0, # minumum hz considered 
+#                600), # maximum hz considered
+#           input = sound_path,
+#           overwrite = TRUE,
+#           output = out_path)
+#     
+#     # divide up desired length by 9 pieces
+#     # use interval_split()
+#     # and put in list for loop
+#     # where path = text grid
+#     temp = get_start_end(path)
+#     
+#     # accesses the intervals from get_start_end
+#     # change hard-coding later
+#     temp_list = c(temp[[1]][1], temp[[1]][2])
+#     
+#     # pitch object does not calculate pitch in the first and last .02 seconds
+#     # trying to calculate it will break it
+#     # change all values that are bad to closest they can be?
+#     
+#     points = interval_split(temp_list, 9)
+#     
+#     point_list = c()
+#     for (time in points)
+#     {
+#         end_time = as.numeric(praat("Get end time", 
+#                                     input = sound_path, 
+#                                     simplify = TRUE))
+#         if (time < .02)
+#         {
+#             point_list = append(point_list, .02)
+#         }
+#         else if (time > end_time - .02)
+#         {
+#             point_list = append(point_list, end_time - .02)
+#         }
+#         
+#         else
+#         {
+#             point_list = append(point_list, time)
+#         }
+# 
+#     }
+#     
+#     # empty, to be filled with loop
+#     data_points = c()
+#     
+#     # loop to fill data_list
+#     for (point in point_list)
+#     {
+#         print(point)
+#         temp_point = as.numeric(praat("Get value at time...",
+#                                       input = out_path,
+#                                       list(point, "Hertz", "Linear"),
+#                                       simplify = TRUE))
+#         print(temp_point)
+#         if (!is.na(temp_point))
+#         {
+#             data_points = append(data_points, temp_point)
+#         }
+#         else
+#         {
+#             data_points = append(data_points, 0)
+#         }
+#     }
+# 
+#     # sort by value
+#     # find median for list
+#     # find quartile for list
+#     sort(data_points)
+#     median = median(data_points)
+#     # 2nd and 4th entries are 1st and 3rd quartile respectively
+#     quantiles = quantile(data_points)
+#     
+#     # adds to list, and labels entries
+#     return_vals = c(median, quantiles[2], quantiles[4])
+#     names(return_vals) = c("median", "1st", "3rd")
+#     
+#     return (return_vals)
+# }
+# 
+# quart_med_F0(pathS)
+# [1] 0.08784719
+# [1] NA
+# [1] 0.1035099
+# [1] 103.4881
+# [1] 0.1191725
+# [1] 106.3803
+# [1] 0.1348352
+# [1] 106.5775
+# [1] 0.1504979
+# [1] 106.8138
+# [1] 0.1661605
+# [1] 108.4301
+# [1] 0.1818232
+# [1] 109.7767
+# [1] 0.1974859
+# [1] 109.2602
+# [1] 0.2131485
+# [1] 127.9983
+# median      1st      3rd 
+# 106.8138 106.3803 109.2602 
+# Warning message:
+#     In quart_med_F0(pathS) : NAs introduced by coercion
+
+
+# returns max F0 value of interval
+# needs to loop for each interval in sound from get_start_end path
+max_F0 <- function(grid_path, f0_path)
 {
+    start_end = get_start_end(grid_path)
+    start = start_end[[1]][1]
+    end = start_end[[1]][2]
     
+    val = as.numeric(praat("Get maximum...",
+                     list(start, end, "Hertz", "Parabolic"),
+                     input = f0_path,
+                     simplify = TRUE))
+    return (val)
 }
 
-# returns max F0 value of interval in FormantTier
+max_F0(path, pitch_path)
+
+# max amplitude value finder of interval
 # needs to loop for each interval in sound from get_start_end path
-max_F0 <- function()
+max_amp <- function(grid_path, intensity_path)
 {
+    start_end = get_start_end(grid_path)
+    start = start_end[[1]][1]
+    end = start_end[[1]][2]
     
+    val = as.numeric(praat("Get maximum...",
+                           list(start, end, "Parabolic"),
+                           input = intensity_path,
+                           simplify = TRUE))
+    return (val)
 }
 
-# max amplitude value finder
-# for interval in 
-# needs to loop for each interval in sound from get_start_end path
-max_amp <- function()
-{
-    
-}
+max_amp(path, out_path)
 
 # takes an interval (two points in time, ie c(2.0, 3.0))
 # and returns a list of points in time split into number_splits points
