@@ -13,25 +13,31 @@ The script will be made of mostly helper functions, for the purposes of modulari
 
 # Progess
 
-get_length function written and working
+get_length function written and working  -- needs to account for multiple intervals per file though, and only grabbing labeled ones.  
 
 get_start_end function written and working 
 
-formant_means written and working
+formant_means written and working  -- needs to account for multiple intervals per file though
 
 quart_med_amp written and working -- needs to account for multiple intervals per file though
 
 interval_split written and working.  
 
+max_f0 and max_amp written and working  -- needs to account for multiple intervals per file though
+
 to do:
 
-* F0 quartile and median measures
+* F0 quartile and median measures -- in progress, but broken.  
 
 * mean of F0
 
 * mean of amplitude 
 
-Once everything is written out and mostly working, figuring out exactly how to systematically go through all the files will be the next step.  Hopefully that will involve minimal changing of existing code.  
+* fix variable names to make things run more smoothly.  
+
+* get everything running together and automatically.  
+
+* put gathered data into a dataframe.  
 
 # usage
 
