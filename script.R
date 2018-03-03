@@ -1,6 +1,5 @@
 # first script attempt
 # goals: 
-#
 # measure F1, F2, F3 11 (?) times equidistant
 # Mean F1, F2, F3, amplitude, F0
 # length
@@ -11,12 +10,6 @@
 
 # deal with formatting outputs later, just get pieces in place
 # eventually want to make a big dataframe for everything to work with
-
-# multiple little pieces 
-# measuring total length of ___
-# computing average is built in to R
-# measure median of ___
-# quartile amplitude can call that one... 
 
 # useful things that don't seem to exist in praatR
 # are actually part of formant object queries!
@@ -31,6 +24,7 @@ library(PraatR)
 
 path = "C:/praatR/Bitur/grids/asak-DM-1.TextGrid"
 pathS = "C:/praatR/Bitur/audio/asak-DM-1.wav"
+out_path = "C:/praatR/Bitur/audio/inten.Matrix"
 
 # takes a sound and text grid and returns the given interval's length
 # grid_path = full path (no spaces allowed) of the text grid
@@ -158,16 +152,15 @@ get_start_end(path)
 # quartile and median calculation
 # amplitude
 # needs to loop for each interval in sound from get_start_end path
-quart_med_amp <- function()
+quart_med_amp <- function(sound_path)
 {
-    matrix_path = "C:/praatR/Bitur/audio/test.Matrix"
     intensity = praat("To Intensity...", 
                    list(100, # minumum pitch
                         0, # time step (0 auto)
                         "yes"), 
-                   input = pathS,
+                   input = sound_path,
                    overwrite = TRUE,
-                   output = "C:/praatR/Bitur/audio/inten.Matrix")
+                   output = out_path)
     # divide up desired length by 9 pieces
     # use interval_split()
     # and put in list for loop
@@ -188,7 +181,7 @@ quart_med_amp <- function()
     {
         data_points = append(data_points, 
                              as.numeric(praat("Get value at time...",
-                                   input = "C:/praatR/Bitur/audio/inten.Matrix",
+                                   input = out_path,
                                    list(point,
                                         "Cubic"),
                                    simplify = TRUE)))
@@ -210,7 +203,7 @@ quart_med_amp <- function()
     
 }
 
-quart_med_amp()
+quart_med_amp(pathS)
 
 # quartile and median calculation
 # F0
