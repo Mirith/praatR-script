@@ -11,11 +11,6 @@
 # deal with formatting outputs later, just get pieces in place
 # eventually want to make a big dataframe for everything to work with
 
-# useful things that don't seem to exist in praatR
-# are actually part of formant object queries!
-# formant listing (19 ish point measurements of first four formants in interval)
-# get first formant (returns average of interval)
-
 # looking in praat at buttons/menus gives explanation of each set of parameters
 
 rm(list = ls())
@@ -27,86 +22,14 @@ library(PraatR)
 # path for text grid file
 path = "C:/praatR/Bitur/grids/abua-DM-1.TextGrid"
 # path for sound file
-pathS = "C:/praatR/Bitur/audio/abua-DM-1.wav"
+sound_path = "C:/praatR/Bitur/audio/abua-DM-1.wav"
 # path for outputs of converted files
 # will be overwritten many times as script runs
-out_path = "C:/praatR/Bitur/audio/inten.Matrix"
+inten_path = "C:/praatR/Bitur/audio/inten.Matrix"
 pitch_path = "C:/praatR/Bitur/audio/untitled.Pitch"
-
-# takes a sound and text grid and returns the given interval's length
-# grid_path = full path (no spaces allowed) of the text grid
-    # ex "C:/praatR/Bitur/grids/ageta-DM-1.TextGrid"
-# tier_number = number of the tier to look at
-# interval_number = which interval you want the length of
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# to do: add functionality to get intervals only if they match a certain label?
-# or make separate function to extract all interval numbers 
-    # if it matches given character?
-# also dataframe -- return values that integrate well?
-get_length <- function(grid_path, tier_number, interval_number, label = NULL)
-{
-    start_time = as.numeric(praat("Get start point...", 
-                       list(tier_number, interval_number), 
-                       input = path, 
-                       simplify = TRUE))
-    end_time = as.numeric(praat("Get end point...", 
-                     list(tier_number, interval_number), 
-                     input = path, 
-                     simplify = TRUE))
-    return (end_time - start_time)
-}
-
-# checking above
-# get_length(path, 1, 2)
-
-# extracts formant information given intervals and labels
-# sound_path is the location of the sound file
-# formants is a list of the number of formants to take the mean of
-# intervals is the output of get_start_end
-# use temp formant object created for future calculations
-formant_means <- function(sound_path, formants, intervals)
-{
-    # list to return later
-    means = c()
-    
-    # cycles through all the formant numbers wanted
-    for (formant_number in formants)
-    {
-        # cycles through each interval in the intervals list
-        for (interval in intervals)
-        {        
-            
-            # gets start point, which should second entry in list
-            start = as.numeric(interval[2])
-            # gets end point, should be third entry in list
-            end = as.numeric(interval[3])
-            
-            # create formant object
-            formant_obj = praat("To Formant (keep all)...", 
-                                list(0, 5, 5500, 0.025, 50),
-                                input = sound_path,
-                                output = "C:/praatR/Bitur/audio/test.Matrix",
-                                overwrite = TRUE)
-            mean = as.numeric(praat("Get mean...", 
-                          list(formant_number, # number of formant to look at
-                               start, # start point in time of formant
-                               end, # end point in time of formant
-                               "Hertz"), # measurement type
-                          input = "C:/praatR/Bitur/audio/test.Matrix",
-                          simplify = TRUE))
-            means = append(means, mean)
-        }
-    }
-    return (means)
-}
-
-# testing 
-formant_means(pathS, c(1:3), get_start_end(path))
 
 # when passed a path of a text grid
 # returns start and stop times with interval label as a list within a list
-# everything in that list is a string 
-# to do -- labels as list index names? 
 get_start_end <- function(text_grid)
 {
     # stores the total number of intervals in the text grid
@@ -140,25 +63,87 @@ get_start_end <- function(text_grid)
                                             list(1, interval), 
                                             input = text_grid, 
                                             simplify = TRUE))
-        
-        # adds the interval label and start/end points to the end of the list
-        index = length(return_list) + 1
-        
-        to_add_temp = c(interval_start, interval_end)
-        names(to_add_temp) = c(interval_label, interval_label)
-        
-        return_list[[index]] = to_add_temp
+            
+            # adds the interval label and start/end points to the end of the list
+            index = length(return_list) + 1
+            
+            to_add_temp = c(interval_start, interval_end)
+            names(to_add_temp) = c(interval_label, interval_label)
+            
+            return_list[[index]] = to_add_temp
         }
     }
     return (return_list)
 }
 
-# testing above 
-get_start_end(path)
+# takes a sound and text grid and returns the given interval's length
+# grid_path = full path (no spaces allowed) of the text grid
+    # ex "C:/praatR/Bitur/grids/ageta-DM-1.TextGrid"
+# tier_number = number of the tier to look at
+# interval_number = which interval you want the length of
+get_length <- function(grid_path, tier_number, interval_number, label = NULL)
+{
+    start_time = as.numeric(praat("Get start point...", 
+                       list(tier_number, interval_number), 
+                       input = path, 
+                       simplify = TRUE))
+    end_time = as.numeric(praat("Get end point...", 
+                     list(tier_number, interval_number), 
+                     input = path, 
+                     simplify = TRUE))
+    return (end_time - start_time)
+}
+
+# extracts formant information given intervals and a formant object
+# formant_loc is the full path of the formant file
+# formants is a list of formants to take the mean of
+# intervals is the output of get_start_end
+# returns a list of lists
+formant_means <- function(formant_loc, intervals)
+{
+    # list to return later
+    means = c()
+    # formants to look at
+    formants_nums = c(1,2,3,4)
+    
+    # cycles through all the formant numbers wanted
+    for (interval in intervals)
+    {
+        # cycles through each interval in the intervals list
+        adding = c()
+        for (formant_number in formants_nums)
+        {        
+            # gets start point, which should second entry in list
+            start = as.numeric(interval[1])
+            # gets end point, should be third entry in list
+            end = as.numeric(interval[2])
+            
+            mean = as.numeric(praat("Get mean...", 
+                          list(formant_number, # number of formant to look at
+                               start, # start point in time of formant
+                               end, # end point in time of formant
+                               "Hertz"), # measurement type
+                          input = formant_loc,
+                          simplify = TRUE))
+            
+            adding = append(adding, mean)
+            
+        }
+        
+        # adding sensible names to the output
+            names(adding) = c("F1", "F2", "F3", "F4")
+        
+        list_index = length(means) + 1
+        means[[list_index]] = adding
+    }
+    
+    return (means)
+}
+
+formant_means("C:/praatR/Bitur/audio/abua", get_start_end("C:/praatR/Bitur/grids/abua-DM-1.TextGrid"))
 
 # quartile and median calculation
 # amplitude
-# needs to loop for each interval in sound from get_start_end path
 quart_med_amp <- function(sound_path)
 {
     intensity = praat("To Intensity...", 
@@ -167,7 +152,7 @@ quart_med_amp <- function(sound_path)
                         "yes"), 
                    input = sound_path,
                    overwrite = TRUE,
-                   output = out_path)
+                   output = inten_path)
     # divide up desired length by 9 pieces
     # use interval_split()
     # and put in list for loop
@@ -188,7 +173,7 @@ quart_med_amp <- function(sound_path)
     {
         data_points = append(data_points, 
                              as.numeric(praat("Get value at time...",
-                                   input = out_path,
+                                   input = inten_path,
                                    list(point,
                                         "Cubic"),
                                    simplify = TRUE)))
@@ -210,8 +195,6 @@ quart_med_amp <- function(sound_path)
     
 }
 
-quart_med_amp(pathS)
-
 # quartile and median calculation
 # F0
 # needs to loop for each interval in sound from get_start_end path
@@ -224,7 +207,7 @@ quart_med_amp(pathS)
 #                600), # maximum hz considered
 #           input = sound_path,
 #           overwrite = TRUE,
-#           output = out_path)
+#           output = inten_path)
 #     
 #     # divide up desired length by 9 pieces
 #     # use interval_split()
@@ -272,7 +255,7 @@ quart_med_amp(pathS)
 #     {
 #         print(point)
 #         temp_point = as.numeric(praat("Get value at time...",
-#                                       input = out_path,
+#                                       input = inten_path,
 #                                       list(point, "Hertz", "Linear"),
 #                                       simplify = TRUE))
 #         print(temp_point)
@@ -301,7 +284,7 @@ quart_med_amp(pathS)
 #     return (return_vals)
 # }
 # 
-# quart_med_F0(pathS)
+# quart_med_F0(sound_path)
 # [1] 0.08784719
 # [1] NA
 # [1] 0.1035099
@@ -323,11 +306,10 @@ quart_med_amp(pathS)
 # median      1st      3rd 
 # 106.8138 106.3803 109.2602 
 # Warning message:
-#     In quart_med_F0(pathS) : NAs introduced by coercion
+#     In quart_med_F0(sound_path) : NAs introduced by coercion
 
 
 # returns max F0 value of interval
-# needs to loop for each interval in sound from get_start_end path
 max_F0 <- function(grid_path, f0_path)
 {
     start_end = get_start_end(grid_path)
@@ -341,10 +323,7 @@ max_F0 <- function(grid_path, f0_path)
     return (val)
 }
 
-max_F0(path, pitch_path)
-
 # max amplitude value finder of interval
-# needs to loop for each interval in sound from get_start_end path
 max_amp <- function(grid_path, intensity_path)
 {
     start_end = get_start_end(grid_path)
@@ -358,12 +337,10 @@ max_amp <- function(grid_path, intensity_path)
     return (val)
 }
 
-max_amp(path, out_path)
-
-# takes an interval (two points in time, ie c(2.0, 3.0))
-# and returns a list of points in time split into number_splits points
-# interval_split(c(2, 3), 4)
-# c(2, 2.33, 2.66, 3)
+# returns a list of points in time split into number_splits points
+# ex:
+# > interval_split(c(2, 3), 4)
+# > c(2, 2.33, 2.66, 3)
 interval_split <- function(interval, number_splits)
 {
     # 0 splits = same interval as passed... 
@@ -397,5 +374,65 @@ interval_split <- function(interval, number_splits)
     
 }
 
-# testing above
-interval_split(c(2,49), 5)
+#################################################################
+# pulling everything together
+
+grid_path = "C:/praatR/Bitur/grids/"
+wav_path = "C:/praatR/Bitur/audio/"
+formant_path = "C:/praatR/Bitur/temp/formant.Matrix"
+intensity_path = "C:/praatR/Bitur/temp/intensity.Matrix"
+
+# create list of all files in directory
+grid_list = list.files(grid_path)
+wav_list = list.files(wav_path)
+
+data = data.frame()
+    # eventual format of data frame will be colums containing 
+    # interval name, length, f0 average (then f1-f4), intensity average, 
+    # f0 peak, intensity peak, 1 and 3 quartile of F0 and intensity, 
+    # and 11 equidistant measures of f1-4
+
+# iterate through each text grid
+for (file in grid_list[1:3])
+{
+    # list of data to be collected and added to dataframe
+    temp_data_list = c()
+    
+    # create full path for text grid file
+    # ie "C:/praatR/Bitur/grids/awaga-DM-3.TextGrid"
+    temp_grid = paste(grid_path, file, sep = "")
+    
+    # getting start/end times of intervals in the file
+    intervals = get_start_end(temp_grid)
+        # intervals is now a list of lists of the start and end points of the intervals
+        # of the current text grid
+        # also labeled with the textgrid interval's label
+    
+    # create formant object
+    formant_obj = praat("To Formant (keep all)...", 
+                        list(0, 5, 5500, 0.025, 50),
+                        input = sound_path,
+                        output = formant_path,
+                        overwrite = TRUE)
+    
+    # extract means of F1, F2, F3, F4 with formant_means function
+    # this function already loops through each interval per file
+    f_means = formant_means(formant_path, intervals)
+    # this is working
+    # print(f_means)
+    
+    # goes through each interval in temp_grid (might be more than one in files)
+    # for (interval in intervals)
+    # {
+    #     # length of the interval
+    #     # reword get_length to be based off of start/end times from get_start_end
+    #     # rather than interval number...
+    #     # try Get interval at time... interval number, time
+    #     # length = get_length(interval)
+    #         # append to temp_data_list at the end of this loop
+    #     
+    # }
+    
+}
+
+
