@@ -26,7 +26,7 @@ sound_path = "C:/praatR/Bitur/audio/abua-DM-1.wav"
 # path for outputs of converted files
 # will be overwritten many times as script runs
 inten_path = "C:/praatR/Bitur/audio/inten.Matrix"
-pitch_path = "C:/praatR/Bitur/audio/untitled.Pitch"
+pitch1_path = "C:/praatR/Bitur/audio/untitled.Pitch"
 
 # when passed a path of a text grid
 # returns start and stop times with interval label as a list within a list
@@ -74,24 +74,6 @@ get_start_end <- function(text_grid)
         }
     }
     return (return_list)
-}
-
-# takes a sound and text grid and returns the given interval's length
-# grid_path = full path (no spaces allowed) of the text grid
-    # ex "C:/praatR/Bitur/grids/ageta-DM-1.TextGrid"
-# tier_number = number of the tier to look at
-# interval_number = which interval you want the length of
-get_length <- function(grid_path, tier_number, interval_number, label = NULL)
-{
-    start_time = as.numeric(praat("Get start point...", 
-                       list(tier_number, interval_number), 
-                       input = path, 
-                       simplify = TRUE))
-    end_time = as.numeric(praat("Get end point...", 
-                     list(tier_number, interval_number), 
-                     input = path, 
-                     simplify = TRUE))
-    return (end_time - start_time)
 }
 
 # extracts formant information given intervals and a formant object
@@ -190,7 +172,7 @@ quart_med_amp <- function(amp_interval, intensity_loc)
 #                600), # maximum hz considered
 #           input = sound_path,
 #           overwrite = TRUE,
-#           output = inten_path)
+#           output = pitch1_path)
 #     
 #     # divide up desired length by 9 pieces
 #     # use interval_split()
@@ -369,7 +351,7 @@ grid_path = "C:/praatR/Bitur/grids/"
 wav_path = "C:/praatR/Bitur/audio/"
 formant_path = "C:/praatR/Bitur/temp/formant.Matrix"
 intensity_path = "C:/praatR/Bitur/temp/intensity.Matrix"
-pitch_path = "C:/praatR/Bitur/temp/pitch.Pitch"
+pitch_path = "C:/praatR/Bitur/temp/pitch.Matrix"
 
 # create list of all files in directory
 grid_list = list.files(grid_path)
@@ -393,6 +375,13 @@ for (file in grid_list[1:3])
     # ie "C:/praatR/Bitur/grids/awaga-DM-3.TextGrid"
     temp_grid = paste(grid_path, file, sep = "")
     
+    # full path for wav file
+    # assuming corresponding wav file for textgrid
+    temp_wav = paste(wav_path, 
+                     substr(file, length(file), length(file) + 8), 
+                     ".wav", 
+                     sep = "")
+    
     # getting start/end times of intervals in the file
     intervals = get_start_end(temp_grid)
         # intervals is now a list of lists of the start and end points of the intervals
@@ -402,7 +391,7 @@ for (file in grid_list[1:3])
     # create formant object (pitch object?)
     formant_obj = praat("To Formant (keep all)...", 
                         list(0, 5, 5500, 0.025, 50),
-                        input = sound_path,
+                        input = temp_wav,
                         output = formant_path,
                         overwrite = TRUE)
     
@@ -411,37 +400,21 @@ for (file in grid_list[1:3])
                       list(100, # minumum pitch
                            0, # time step (0 auto)
                            "yes"), 
-                      input = sound_path,
+                      input = temp_wav,
                       overwrite = TRUE,
                       output = intensity_path)
     
     # create pitch object
     pitch_obj = praat("To Pitch...", 
                       list(0, # time step
-                           0, # minumum hz considered
-                           600), # maximum hz considered
-                      input = sound_path,
+                           75, # pitch floor
+                           600), # pitch ceiling
+                      input = temp_wav,
                       overwrite = TRUE,
                       output = pitch_path)
     
-    # extract means of F1, F2, F3, F4 with formant_means function
-    # this function already loops through each interval per file
+    # add to loop through intervals
     f_means = formant_means(formant_path, intervals)
-    # this is working
-    # print(f_means)
-    # add to data list?
-    
-    # # goes through each interval in temp_grid (might be more than one in files)
-    # for (interval in intervals)
-    # {
-    #     
-    #     # length of the interval
-    #     # reword get_length to be based off of start/end times from get_start_end
-    #     # rather than interval number...
-    #     # try Get interval at time... interval number, time
-    #     # length = get_length(interval)
-    # 
-    # }
     
 }
 
