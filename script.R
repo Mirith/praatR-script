@@ -13,6 +13,9 @@
 
 # looking in praat at buttons/menus gives explanation of each set of parameters
 
+# to do -- vowels v consonants analysis?  
+# consonants and pitch...
+
 rm(list = ls())
 
 library(PraatR)
@@ -358,7 +361,7 @@ grid_list = list.files(grid_path)
 wav_list = list.files(wav_path)
 
 data = data.frame()
-    # eventual format of data frame will be colums containing 
+    # eventual format of data frame will be columns containing 
     # interval name, length, f0 average (then f1-f4), intensity average, 
     # f0 peak, intensity peak, 1 and 3 quartile of F0 and intensity, 
     # and 11 equidistant measures of f1-4
@@ -366,17 +369,13 @@ data = data.frame()
 # iterate through each text grid
 for (file in grid_list[1:3])
 {
-    # rewrite functions to be in terms on interval times
-    # pass one interval, calculate
-    # easier to loop through
-    # loop through each interval from get_start_end
-    
     # create full path for text grid file
     # ie "C:/praatR/Bitur/grids/awaga-DM-3.TextGrid"
     temp_grid = paste(grid_path, file, sep = "")
     
     # full path for wav file
-    # assuming corresponding wav file for textgrid
+    # assuming corresponding wav file for textgrid...
+    # to do -- figure out how to safeguard against missing/extraneous files?
     temp_wav = paste(wav_path, 
                      substr(file, length(file), length(file) + 8), 
                      ".wav", 
@@ -390,16 +389,20 @@ for (file in grid_list[1:3])
     
     # create formant object (pitch object?)
     formant_obj = praat("To Formant (keep all)...", 
-                        list(0, 5, 5500, 0.025, 50),
+                        list(0, # time step
+                             5, # max num formants
+                             5500, # max formant hz
+                             0.025, # window length
+                             50), # pre-emphasis hz
                         input = temp_wav,
-                        output = formant_path,
-                        overwrite = TRUE)
+                        overwrite = TRUE,
+                        output = formant_path)
     
     # create intensity object
     intensity = praat("To Intensity...", 
                       list(100, # minumum pitch
                            0, # time step (0 auto)
-                           "yes"), 
+                           "yes"), # subtract mean
                       input = temp_wav,
                       overwrite = TRUE,
                       output = intensity_path)
@@ -413,9 +416,26 @@ for (file in grid_list[1:3])
                       overwrite = TRUE,
                       output = pitch_path)
     
-    # add to loop through intervals
-    f_means = formant_means(formant_path, intervals)
-    
+    for (interval in intervals)
+    {
+        start = interval[1]
+        end = interval[2]
+        temp_interval = c(start, end)
+
+        label = names(start)
+        f_means = formant_means(temp_interval, formant_path)
+        qma = quart_med_amp(temp_interval, intensity_path)
+        length = end - start 
+        mf0 = max_F0(temp_interval, pitch_path)
+        ma = max_amp(temp_interval, intensity_path)
+        
+        nums_return = c(length, mf0, ma)
+        names(nums_return) = c("length", "max f0", "max amp")
+        
+        print(f_means)
+        print(qma)
+        print(nums_return)
+    }
 }
 
 
