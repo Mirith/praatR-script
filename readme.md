@@ -13,17 +13,17 @@ The script will be made of mostly helper functions, for the purposes of modulari
 
 # Progess
 
-get_length function written and working  -- needs to account for multiple intervals per file though, and only grabbing labeled ones.  
+get_length function deleted -- easier to subtract end/start points from get_start_end... 
 
 get_start_end function written and working 
 
 formant_means written and working.  
 
-quart_med_amp written and working -- needs to account for multiple intervals per file though (look to formant_means?)
+quart_med_amp written and working
 
 interval_split written and working.  
 
-max_f0 and max_amp written and working  -- needs to account for multiple intervals per file though
+max_f0 and max_amp written and working
 
 to do:
 
@@ -33,9 +33,11 @@ to do:
 
 * mean of amplitude 
 
-* fix variable names to make things run more smoothly.  
+* equidistant measures of F1, F2, F3
 
-* get everything running together and automatically.  
+* ~~fix variable names to make things run more smoothly.~~ mostly done, still need to check things.  
+
+* ~~get everything running together and automatically.~~ mostly done.  
 
 * put gathered data into a dataframe.  
 
