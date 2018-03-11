@@ -134,127 +134,54 @@ quart_med_amp <- function(amp_interval, intensity_loc)
     
     # adds to list, and labels entries
     return_vals = c(median, quantiles[2], quantiles[4])
-    names(return_vals) = c("median", "1st", "3rd")
+    names(return_vals) = c("amp median", "amp 1st", "amp 3rd")
     
     return (return_vals)
     
 }
 
-# quart_med_amp(c(.0878, .21314), intensity_path)
-
 # quartile and median calculation
 # F0
-# needs to loop for each interval in sound from get_start_end path
-# quart_med_F0 <- function(sound_path)
-# {
-#     # change from intensity to f0 thing?
-#     praat("To Pitch...", 
-#           list(0, # time step 
-#                0, # minumum hz considered 
-#                600), # maximum hz considered
-#           input = sound_path,
-#           overwrite = TRUE,
-#           output = pitch1_path)
-#     
-#     # divide up desired length by 9 pieces
-#     # use interval_split()
-#     # and put in list for loop
-#     # where path = text grid
-#     temp = get_start_end(path)
-#     
-#     # accesses the intervals from get_start_end
-#     # change hard-coding later
-#     temp_list = c(temp[[1]][1], temp[[1]][2])
-#     
-#     # pitch object does not calculate pitch in the first and last .02 seconds
-#     # trying to calculate it will break it
-#     # change all values that are bad to closest they can be?
-#     
-#     points = interval_split(temp_list, 9)
-#     
-#     point_list = c()
-#     for (time in points)
-#     {
-#         end_time = as.numeric(praat("Get end time", 
-#                                     input = sound_path, 
-#                                     simplify = TRUE))
-#         if (time < .02)
-#         {
-#             point_list = append(point_list, .02)
-#         }
-#         else if (time > end_time - .02)
-#         {
-#             point_list = append(point_list, end_time - .02)
-#         }
-#         
-#         else
-#         {
-#             point_list = append(point_list, time)
-#         }
-# 
-#     }
-#     
-#     # empty, to be filled with loop
-#     data_points = c()
-#     
-#     # loop to fill data_list
-#     for (point in point_list)
-#     {
-#         print(point)
-#         temp_point = as.numeric(praat("Get value at time...",
-#                                       input = inten_path,
-#                                       list(point, "Hertz", "Linear"),
-#                                       simplify = TRUE))
-#         print(temp_point)
-#         if (!is.na(temp_point))
-#         {
-#             data_points = append(data_points, temp_point)
-#         }
-#         else
-#         {
-#             data_points = append(data_points, 0)
-#         }
-#     }
-# 
-#     # sort by value
-#     # find median for list
-#     # find quartile for list
-#     sort(data_points)
-#     median = median(data_points)
-#     # 2nd and 4th entries are 1st and 3rd quartile respectively
-#     quantiles = quantile(data_points)
-#     
-#     # adds to list, and labels entries
-#     return_vals = c(median, quantiles[2], quantiles[4])
-#     names(return_vals) = c("median", "1st", "3rd")
-#     
-#     return (return_vals)
-# }
-# 
-# quart_med_F0(sound_path)
-# [1] 0.08784719
-# [1] NA
-# [1] 0.1035099
-# [1] 103.4881
-# [1] 0.1191725
-# [1] 106.3803
-# [1] 0.1348352
-# [1] 106.5775
-# [1] 0.1504979
-# [1] 106.8138
-# [1] 0.1661605
-# [1] 108.4301
-# [1] 0.1818232
-# [1] 109.7767
-# [1] 0.1974859
-# [1] 109.2602
-# [1] 0.2131485
-# [1] 127.9983
-# median      1st      3rd 
-# 106.8138 106.3803 109.2602 
-# Warning message:
-#     In quart_med_F0(sound_path) : NAs introduced by coercion
-
+quart_med_F0 <- function(f0_interval, f0_loc)
+{
+    # accounting for Praats sampling of f0 (75 floor Hz = 40 ms sample)
+    new_interval = c(f0_interval[1] + .04, f0_interval[2])
+    # divide up desired length by 9 pieces
+    # use interval_split()
+    # and put in list for loop
+    point_list = interval_split(new_interval, 9)
+    
+    # empty, to be filled with loop
+    # holds the decibel intensities to be worked with later
+    data_points = c()
+    
+    # loop to fill data_list
+    for (point in point_list)
+    {
+        new_num = as.numeric(praat("Get value at time...",
+                               input = f0_loc,
+                               list(point,
+                                    "Hertz",
+                                    "Linear"),
+                               simplify = TRUE))
+        
+        data_points = append(data_points, new_num)
+    }
+    
+    # sort by value
+    # find median for list
+    # find quartile for list
+    sort(data_points)
+    median = median(data_points, na.rm = TRUE)
+    # 2nd and 4th entries are 1st and 3rd quartile respectively
+    quantiles = quantile(data_points, na.rm = TRUE)
+    
+    # adds to list, and labels entries
+    return_vals = c(median, quantiles[2], quantiles[4])
+    names(return_vals) = c("f0 median", "f0 1st", "f0 3rd")
+    
+    return (return_vals)
+}
 
 # returns max F0 value of interval passed 
 # f0_time is a list of the start and end point of the interval to look at
@@ -460,39 +387,30 @@ for (file in grid_list[1:3])
     {
         start = interval[1]
         end = interval[2]
-        
+
         label = names(start)
+
         f_means = formant_means(interval, formant_path)
-        qma = quart_med_amp(interval, intensity_path)
-        length = end - start 
+        qma_amp = quart_med_amp(interval, intensity_path)
+        length = end - start
         f0_max = max_F0(interval, pitch_path)
         amp_max = max_amp(interval, intensity_path)
         f0_mean = mean_F0(interval, pitch_path)
         amp_mean = mean_amp(interval, intensity_path)
         f_pts = f_sample(interval, 11, formant_path)
-        
-        # start = interval[1]
-        # end = interval[2]
-        # temp_interval = c(start, end)
-        # 
-        # label = names(start)
-        # f_means = formant_means(temp_interval, formant_path)
-        # qma = quart_med_amp(temp_interval, intensity_path)
-        # length = end - start 
-        # f0_max = max_F0(temp_interval, pitch_path)
-        # amp_max = max_amp(temp_interval, intensity_path)
-        # f0_mean = mean_F0(temp_interval, pitch_path)
-        # amp_mean = mean_amp(temp_interval, intensity_path)
-        
+
+        qma_f0 = quart_med_F0(interval, pitch_path)
+
         nums_return = c(length, f0_max, amp_max, f0_mean, amp_mean)
-        names(nums_return) = c("length (s)", 
-                               "max f0 (Hz)", 
-                               "max amp (dB)", 
-                               "mean f0 (Hz)", 
+        names(nums_return) = c("length (s)",
+                               "max f0 (Hz)",
+                               "max amp (dB)",
+                               "mean f0 (Hz)",
                                "mean amp (dB)")
-        
+
         print(f_means)
-        print(qma)
+        print(qma_amp)
+        print(qma_f0)
         print(nums_return)
         print(f_pts)
     }
