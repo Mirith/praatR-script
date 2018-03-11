@@ -23,21 +23,13 @@ quart_med_amp written and working
 
 interval_split written and working.  
 
-max_f0 and max_amp written and working
+max_F0 and max_amp written and working.  
+
+mean_F0, mean_amp, and f_samples written and working.  
 
 to do:
 
 * F0 quartile and median measures -- in progress, but totally broken.  
-
-* mean of F0
-
-* mean of amplitude 
-
-* equidistant measures of F1, F2, F3
-
-* ~~fix variable names to make things run more smoothly.~~ mostly done, still need to check things.  
-
-* ~~get everything running together and automatically.~~ mostly done.  
 
 * put gathered data into a dataframe.  
 
