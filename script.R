@@ -7,10 +7,35 @@
 # 3rd quartile amplitude, F0
 # median amplitude, F0
 # peak F0 and amplitude
+# get label of adjacent segments
+
+#################### check out Warning messages: ###############################
+#1: In f_sample(interval, 11, formant_path) : NAs introduced by coercion
+#2: In f_sample(interval, 11, formant_path) : NAs introduced by coercion
+#3: In f_sample(interval, 11, formant_path) : NAs introduced by coercion
+#4: In append(data_points, as.numeric(praat("Get value at time...",  ... : 
+# NAs introduced by coercion
+# 5: In quart_med_F0(interval, pitch_path) : NAs introduced by coercion
+# 6: In quart_med_F0(interval, pitch_path) : NAs introduced by coercion
+# 7: In quart_med_F0(interval, pitch_path) : NAs introduced by coercion
+# 8: In quart_med_F0(interval, pitch_path) : NAs introduced by coercion
+# 9: In quart_med_F0(interval, pitch_path) : NAs introduced by coercion
+# 10: In f_sample(interval, 11, formant_path) : NAs introduced by coercion
+# 11: In f_sample(interval, 11, formant_path) : NAs introduced by coercion
+# 12: In f_sample(interval, 11, formant_path) : NAs introduced by coercion
+# 13: In append(data_points, as.numeric(praat("Get value at time...",  ... :
+# NAs introduced by coercion
+# 14: In quart_med_F0(interval, pitch_path) : NAs introduced by coercion
+# 15: In quart_med_F0(interval, pitch_path) : NAs introduced by coercion
+# 16: In quart_med_F0(interval, pitch_path) : NAs introduced by coercion
+                                                                                       
+############ useful functions ##################################################
 
 rm(list = ls())
 
 library(PraatR)
+
+get_adjacent_labels("C:/praatR/Bitur/grids/abua-DM-1.TextGrid")
 
 # when passed a path of a text grid
 # returns start and stop times with interval label as a list within a list
@@ -26,13 +51,31 @@ get_start_end <- function(grid_loc)
     return_list <- vector("list")
     
     # cycles through each interval in the text grid
-    for (interval in c(1:interval_numbers))
+    for (interval in c(2:interval_numbers))
     {
-        # gets the label of the interval
+        # gets the preceding adjacent label 
         interval_label = praat("Get label of interval...", # praat command
-                               list(1, interval), # tier and interval to look at
+                               list(1, interval - 1), # tier and interval to look at
                                input = grid_loc)
+        
+        # gets the label of the interval
+        interval_label = paste(interval_label, 
+                                praat("Get label of interval...", # praat command
+                                      list(1, interval), # tier and interval to look at
+                                      input = grid_loc), sep = " ")
+        
+        # gets the following adjacent label, if interval is not last
+        if (interval < interval_numbers)
+        {
+            interval_label = paste(interval_label, 
+                                   praat("Get label of interval...", # praat command
+                                         list(1, interval + 1), # tier and interval to look at
+                                         input = grid_loc), sep = " ")
+        }
+        
         # if it has a label
+        # it should have a label, but... 
+            # account for missing labels? (will end with missing adjacents...)
         if(interval_label != "")
         {
             # finds the start point
@@ -59,6 +102,8 @@ get_start_end <- function(grid_loc)
     }
     return (return_list)
 }
+
+get_start_end("C:/praatR/Bitur/grids/abua-DM-1.TextGrid")
 
 # extracts formant information given intervals and a formant object
 # formant_loc is the full path of the formant file
@@ -128,9 +173,9 @@ quart_med_amp <- function(amp_interval, intensity_loc)
     # find median for list
     # find quartile for list
     sort(data_points)
-    median = median(data_points)
+    median = median(data_points, na.rm = TRUE)
     # 2nd and 4th entries are 1st and 3rd quartile respectively
-    quantiles = quantile(data_points)
+    quantiles = quantile(data_points, na.rm = TRUE)
     
     # adds to list, and labels entries
     return_vals = c(median, quantiles[2], quantiles[4])
@@ -276,7 +321,6 @@ f_sample <- function(f_interval, num_samples, formant_loc)
     return (return_vals)
 }
 
-# get_start_end(path)
 # returns a list of points in time split into number_splits points
 # ex:
 # > interval_split(c(2, 3), 4)
@@ -354,6 +398,8 @@ for (file in grid_list[1:3])
         # of the current text grid
         # also labeled with the textgrid interval's label
     
+    print(intervals)
+    
     # create formant object (pitch object?)
     formant_obj = praat("To Formant (keep all)...", 
                         list(0, # time step
@@ -389,17 +435,21 @@ for (file in grid_list[1:3])
         end = interval[2]
 
         label = names(start)
+        
+        
+        length = end - start
 
         f_means = formant_means(interval, formant_path)
+        f_pts = f_sample(interval, 11, formant_path)
+        
         qma_amp = quart_med_amp(interval, intensity_path)
-        length = end - start
+        qma_f0 = quart_med_F0(interval, pitch_path)
+        
         f0_max = max_F0(interval, pitch_path)
         amp_max = max_amp(interval, intensity_path)
+        
         f0_mean = mean_F0(interval, pitch_path)
         amp_mean = mean_amp(interval, intensity_path)
-        f_pts = f_sample(interval, 11, formant_path)
-
-        qma_f0 = quart_med_F0(interval, pitch_path)
 
         nums_return = c(length, f0_max, amp_max, f0_mean, amp_mean)
         names(nums_return) = c("length (s)",
