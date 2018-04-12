@@ -35,8 +35,6 @@ rm(list = ls())
 
 library(PraatR)
 
-get_adjacent_labels("C:/praatR/Bitur/grids/abua-DM-1.TextGrid")
-
 # when passed a path of a text grid
 # returns start and stop times with interval label as a list within a list
 get_start_end <- function(grid_loc)
@@ -58,20 +56,20 @@ get_start_end <- function(grid_loc)
                                list(1, interval - 1), # tier and interval to look at
                                input = grid_loc)
         
-        # gets the label of the interval
-        interval_label = paste(interval_label, 
-                                praat("Get label of interval...", # praat command
-                                      list(1, interval), # tier and interval to look at
-                                      input = grid_loc), sep = " ")
-        
-        # gets the following adjacent label, if interval is not last
-        if (interval < interval_numbers)
-        {
-            interval_label = paste(interval_label, 
-                                   praat("Get label of interval...", # praat command
-                                         list(1, interval + 1), # tier and interval to look at
-                                         input = grid_loc), sep = " ")
-        }
+        # # gets the label of the interval
+        # interval_label = paste(interval_label, 
+        #                         praat("Get label of interval...", # praat command
+        #                               list(1, interval), # tier and interval to look at
+        #                               input = grid_loc), sep = " ")
+        # 
+        # # gets the following adjacent label, if interval is not last
+        # if (interval < interval_numbers)
+        # {
+        #     interval_label = paste(interval_label, 
+        #                            praat("Get label of interval...", # praat command
+        #                                  list(1, interval + 1), # tier and interval to look at
+        #                                  input = grid_loc), sep = " ")
+        # }
         
         # if it has a label
         # it should have a label, but... 
@@ -102,8 +100,6 @@ get_start_end <- function(grid_loc)
     }
     return (return_list)
 }
-
-get_start_end("C:/praatR/Bitur/grids/abua-DM-1.TextGrid")
 
 # extracts formant information given intervals and a formant object
 # formant_loc is the full path of the formant file
