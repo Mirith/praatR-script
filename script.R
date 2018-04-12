@@ -1,4 +1,3 @@
-# first script attempt
 # goals: 
 # measure F1, F2, F3 11 (?) times equidistant
 # Mean F1, F2, F3, amplitude, F0
@@ -15,8 +14,11 @@ rm(list = ls())
 
 library(PraatR)
 
+vowels = c("a", "e", "i", "o", "u")
+
 # when passed a path of a text grid
-# returns start and stop times with interval label as a list within a list
+# returns label, start and stop time, as well as adjacent labels
+# only if the interval had a vowel 
 get_start_end <- function(grid_loc)
 {
     # stores the total number of intervals in the text grid
@@ -25,37 +27,32 @@ get_start_end <- function(grid_loc)
               list(1), # 1 = the number of the tier to look at
               input = grid_loc, # path of text grid
               simplify = TRUE)) # return only number (still a string)
+    
     # empty, to be filled and returned later
     return_list <- vector("list")
     
     # cycles through each interval in the text grid
     for (interval in c(2:interval_numbers))
     {
-        # gets the preceding adjacent label 
+        # gets the label of the interval
         interval_label = praat("Get label of interval...", # praat command
-                               list(1, interval - 1), # tier and interval to look at
+                               list(1, interval), # tier and interval to look at
                                input = grid_loc)
         
-        # # gets the label of the interval
-        # interval_label = paste(interval_label, 
-        #                         praat("Get label of interval...", # praat command
-        #                               list(1, interval), # tier and interval to look at
-        #                               input = grid_loc), sep = " ")
-        # 
-        # # gets the following adjacent label, if interval is not last
-        # if (interval < interval_numbers)
-        # {
-        #     interval_label = paste(interval_label, 
-        #                            praat("Get label of interval...", # praat command
-        #                                  list(1, interval + 1), # tier and interval to look at
-        #                                  input = grid_loc), sep = " ")
-        # }
-        
-        # if it has a label
-        # it should have a label, but... 
-            # account for missing labels? (will end with missing adjacents...)
-        if(interval_label != "")
+        # if it's a vowel -- get adjacent interval labels
+        # if not, go to next interval
+        if(interval_label %in% vowels)
         {
+            # gets the preceding adjacent label
+            before_label = praat("Get label of interval...", # praat command
+                                   list(1, interval - 1), # tier and interval to look at
+                                   input = grid_loc)
+            
+            # gets the following adjacent label
+            after_label = praat("Get label of interval...", # praat command
+                                   list(1, interval + 1), # tier and interval to look at
+                                   input = grid_loc)
+            
             # finds the start point
             # similar to how Get label of interval... works
             interval_start = as.numeric(praat("Get start point...", 
@@ -72,8 +69,9 @@ get_start_end <- function(grid_loc)
             # adds the interval label and start/end points to the end of the list
             index = length(return_list) + 1
             
-            to_add_temp = c(interval_start, interval_end)
-            names(to_add_temp) = c(interval_label, interval_label)
+            to_add_temp = c(interval_start, interval_end, 
+                            before_label, interval_label, after_label)
+            names(to_add_temp) = c("label", "start", "end", "before", "after")
             
             return_list[[index]] = to_add_temp
         }
@@ -350,7 +348,9 @@ grid_list = list.files(grid_path)
 wav_list = list.files(wav_path)
 
 word = c()
-labels = c()
+label = c()
+beforeLabel = c()
+afterLabel = c()
 meanF1 = c()
 meanF2 = c()
 meanF3 = c()
@@ -457,22 +457,25 @@ for (file in grid_list[1:3])
     {
         word = append(word, fileName)
         
-        start = interval[1]
-        end = interval[2]
-
-        label = names(start)
-        labels = append(labels, label)
+        start = as.numeric(interval[1])
+        end = as.numeric(interval[2])
+        
+        interval_list = c(start, end)
+        
+        label = append(label, interval[4])
+        beforeLabel = append(beforeLabel, interval[3])
+        afterLabel = append(afterLabel, interval[5])
         
         lengthInt = end - start
         length = append(length, lengthInt)
 
-        f_means = formant_means(interval, formant_path)
+        f_means = formant_means(interval_list, formant_path)
         meanF1 = append(meanF1, f_means[1])
         meanF2 = append(meanF2, f_means[2])
         meanF3 = append(meanF3, f_means[3])
         meanF4 = append(meanF4, f_means[4])
-        
-        f_pts = f_sample(interval, 11, formant_path)
+
+        f_pts = f_sample(interval_list, 11, formant_path)
         F1.1 = append(F1.1, f_pts[1])
         F1.2 = append(F1.2, f_pts[2])
         F1.3 = append(F1.3, f_pts[3])
@@ -507,32 +510,32 @@ for (file in grid_list[1:3])
         F3.10 = append(F3.10, f_pts[32])
         F3.11 = append(F3.11, f_pts[33])
 
-        qma_amp = quart_med_amp(interval, intensity_path)
+        qma_amp = quart_med_amp(interval_list, intensity_path)
         medianAmplitude = append(medianAmplitude, qma_amp[1])
         firstQuartileAmplitude = append(firstQuartileAmplitude, qma_amp[2])
         thirdQuartileAmplitude = append(thirdQuartileAmplitude, qma_amp[3])
-        
-        qma_f0 = quart_med_F0(interval, pitch_path)
+
+        qma_f0 = quart_med_F0(interval_list, pitch_path)
         medianF0 = append(medianF0, qma_f0[1])
         firstQuartileF0 = append(firstQuartileF0, qma_f0[2])
         thirdQuartileF0 = append(thirdQuartileF0, qma_f0[3])
 
-        f0_max = max_F0(interval, pitch_path)
+        f0_max = max_F0(interval_list, pitch_path)
         maxF0 = append(maxF0, f0_max)
-        
-        amp_max = max_amp(interval, intensity_path)
+
+        amp_max = max_amp(interval_list, intensity_path)
         maxAmplitude = append(maxAmplitude, amp_max)
-        
-        f0_mean = mean_F0(interval, pitch_path)
+
+        f0_mean = mean_F0(interval_list, pitch_path)
         meanF0 = append(meanF0, f0_mean)
-        
-        amp_mean = mean_amp(interval, intensity_path)
+
+        amp_mean = mean_amp(interval_list, intensity_path)
         meanAmplitude = append(meanAmplitude, amp_mean)
     }
 }
 
 # dataframe -- each column is a vector created in previous loop
-data = data.frame(labels, length,
+data = data.frame(label, beforeLabel, afterLabel, length,
                   meanF1, meanF2, meanF3, meanF4,
                   medianAmplitude, firstQuartileAmplitude, thirdQuartileAmplitude, 
                   medianF0, firstQuartileF0, thirdQuartileF0, 
