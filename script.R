@@ -8,26 +8,6 @@
 # median amplitude, F0
 # peak F0 and amplitude
 # get label of adjacent segments
-
-#################### check out Warning messages: ###############################
-#1: In f_sample(interval, 11, formant_path) : NAs introduced by coercion
-#2: In f_sample(interval, 11, formant_path) : NAs introduced by coercion
-#3: In f_sample(interval, 11, formant_path) : NAs introduced by coercion
-#4: In append(data_points, as.numeric(praat("Get value at time...",  ... : 
-# NAs introduced by coercion
-# 5: In quart_med_F0(interval, pitch_path) : NAs introduced by coercion
-# 6: In quart_med_F0(interval, pitch_path) : NAs introduced by coercion
-# 7: In quart_med_F0(interval, pitch_path) : NAs introduced by coercion
-# 8: In quart_med_F0(interval, pitch_path) : NAs introduced by coercion
-# 9: In quart_med_F0(interval, pitch_path) : NAs introduced by coercion
-# 10: In f_sample(interval, 11, formant_path) : NAs introduced by coercion
-# 11: In f_sample(interval, 11, formant_path) : NAs introduced by coercion
-# 12: In f_sample(interval, 11, formant_path) : NAs introduced by coercion
-# 13: In append(data_points, as.numeric(praat("Get value at time...",  ... :
-# NAs introduced by coercion
-# 14: In quart_med_F0(interval, pitch_path) : NAs introduced by coercion
-# 15: In quart_med_F0(interval, pitch_path) : NAs introduced by coercion
-# 16: In quart_med_F0(interval, pitch_path) : NAs introduced by coercion
                                                                                        
 ############ useful functions ##################################################
 
@@ -369,6 +349,7 @@ pitch_path = "C:/praatR/Bitur/temp/pitch.Matrix"
 grid_list = list.files(grid_path)
 wav_list = list.files(wav_path)
 
+word = c()
 labels = c()
 meanF1 = c()
 meanF2 = c()
@@ -422,15 +403,18 @@ meanAmplitude = c()
 # iterate through each text grid
 for (file in grid_list[1:3])
 {
+    fileName = substr(file, 1, length(file) + 8); fileName
+    
     # create full path for text grid file
-    # ie "C:/praatR/Bitur/grids/awaga-DM-3.TextGrid"
+    # ie "C:/praatR/Bitur/grids/ + awaga-DM-3.TextGrid"
     temp_grid = paste(grid_path, file, sep = "")
     
     # full path for wav file
-    # assuming corresponding wav file for textgrid...
-    # to do -- figure out how to safeguard against missing/extraneous files?
+    # assuming corresponding wav file name for textgrid...
+        # to do -- figure out how to safeguard against missing/extraneous files?
+    # ex "C:/praatR/Bitur/audio/ + awaga-DM-3.TextGrid - .TextGrid + wav
     temp_wav = paste(wav_path, 
-                     substr(file, length(file), length(file) + 8), 
+                     fileName, 
                      ".wav", 
                      sep = "")
     
@@ -471,6 +455,8 @@ for (file in grid_list[1:3])
     
     for (interval in intervals)
     {
+        word = append(word, fileName)
+        
         start = interval[1]
         end = interval[2]
 
@@ -488,25 +474,25 @@ for (file in grid_list[1:3])
         
         f_pts = f_sample(interval, 11, formant_path)
         F1.1 = append(F1.1, f_pts[1])
-        F1.2 =  append(F1.2, f_pts[2])
-        F1.3 =  append(F1.3, f_pts[3])
-        F1.4 =  append(F1.4, f_pts[4])
-        F1.5 =  append(F1.5, f_pts[5])
-        F1.6 =  append(F1.6, f_pts[6])
-        F1.7 =  append(F1.7, f_pts[7])
-        F1.8 =  append(F1.8, f_pts[8])
-        F1.9 =  append(F1.9, f_pts[9])
-        F1.10 =  append(F1.10, f_pts[10])
-        F1.11 =  append(F1.11, f_pts[11])
-        F2.1 =  append(F2.1, f_pts[12])
-        F2.2 =  append(F2.2, f_pts[13])
-        F2.3 =  append(F2.3, f_pts[14])
-        F2.4 =  append(F2.4, f_pts[15])
-        F2.5 =  append(F2.5, f_pts[16])
-        F2.6 =  append(F2.6, f_pts[17])
-        F2.7 =  append(F2.7, f_pts[18])
-        F2.8 =  append(F2.8, f_pts[19])
-        F2.9 =  append(F2.9, f_pts[20])
+        F1.2 = append(F1.2, f_pts[2])
+        F1.3 = append(F1.3, f_pts[3])
+        F1.4 = append(F1.4, f_pts[4])
+        F1.5 = append(F1.5, f_pts[5])
+        F1.6 = append(F1.6, f_pts[6])
+        F1.7 = append(F1.7, f_pts[7])
+        F1.8 = append(F1.8, f_pts[8])
+        F1.9 = append(F1.9, f_pts[9])
+        F1.10 = append(F1.10, f_pts[10])
+        F1.11 = append(F1.11, f_pts[11])
+        F2.1 = append(F2.1, f_pts[12])
+        F2.2 = append(F2.2, f_pts[13])
+        F2.3 = append(F2.3, f_pts[14])
+        F2.4 = append(F2.4, f_pts[15])
+        F2.5 = append(F2.5, f_pts[16])
+        F2.6 = append(F2.6, f_pts[17])
+        F2.7 = append(F2.7, f_pts[18])
+        F2.8 = append(F2.8, f_pts[19])
+        F2.9 = append(F2.9, f_pts[20])
         F2.10 = append(F2.10, f_pts[21])
         F2.11 = append(F2.11, f_pts[22])
         F3.1 = append(F3.1, f_pts[23])
@@ -545,6 +531,7 @@ for (file in grid_list[1:3])
     }
 }
 
+# dataframe -- each column is a vector created in previous loop
 data = data.frame(labels, length,
                   meanF1, meanF2, meanF3, meanF4,
                   medianAmplitude, firstQuartileAmplitude, thirdQuartileAmplitude, 
@@ -555,9 +542,9 @@ data = data.frame(labels, length,
                   F2.1, F2.2, F2.3, F2.4, F2.5, F2.6, F2.7, F2.8, F2.9, F2.10, F2.11, 
                   F3.1, F3.2, F3.3, F3.4, F3.5, F3.6, F3.7, F3.8, F3.9, F3.10, F3.11) 
 
-# eventual format of data frame will be columns containing 
-# interval name, length, f0 average (then f1-f4), intensity average, 
-# f0 peak, intensity peak, 1 and 3 quartile of F0 and intensity, 
-# and 11 equidistant measures of f1-4
+write.table(data, sep = ",", row.names = FALSE, file = 'test.csv')
 
 
+# fix making dataframe/writing to csv for lots of files
+# fix interval labels/adjacent labels
+    # separate method for this...
