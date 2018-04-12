@@ -310,11 +310,13 @@ f_sample <- function(f_interval, num_samples, formant_loc)
         f3 = append(f3, f3_val)
     }
     
-    return_vals[[1]] = f1
-    return_vals[[2]] = f2
-    return_vals[[3]] = f3
+    # return_vals[[1]] = f1
+    # return_vals[[2]] = f2
+    # return_vals[[3]] = f3
+    # 
+    # return (return_vals)
     
-    return (return_vals)
+    return (c(f1, f2, f3))
 }
 
 # returns a list of points in time split into number_splits points
@@ -367,11 +369,55 @@ pitch_path = "C:/praatR/Bitur/temp/pitch.Matrix"
 grid_list = list.files(grid_path)
 wav_list = list.files(wav_path)
 
-data = data.frame()
-    # eventual format of data frame will be columns containing 
-    # interval name, length, f0 average (then f1-f4), intensity average, 
-    # f0 peak, intensity peak, 1 and 3 quartile of F0 and intensity, 
-    # and 11 equidistant measures of f1-4
+labels = c()
+meanF1 = c()
+meanF2 = c()
+meanF3 = c()
+meanF4 = c()
+F1.1 = c()
+F1.2 = c()
+F1.3 = c()
+F1.4 = c()
+F1.5 = c()
+F1.6 = c()
+F1.7 = c()
+F1.8 = c()
+F1.9 = c()
+F1.10 = c()
+F1.11 = c()
+F2.1 = c()
+F2.2 = c()
+F2.3 = c()
+F2.4 = c()
+F2.5 = c()
+F2.6 = c()
+F2.7 = c()
+F2.8 = c()
+F2.9 = c()
+F2.10 = c()
+F2.11 = c()
+F3.1 = c()
+F3.2 = c()
+F3.3 = c()
+F3.4 = c()
+F3.5 = c()
+F3.6 = c()
+F3.7 = c()
+F3.8 = c()
+F3.9 = c()
+F3.10 = c()
+F3.11 = c()
+medianAmplitude = c()
+firstQuartileAmplitude = c()
+thirdQuartileAmplitude = c()
+medianF0 = c()
+firstQuartileF0 = c()
+thirdQuartileF0 = c()
+length = c()
+maxF0 = c()
+maxAmplitude = c()
+meanF0 = c()
+meanAmplitude = c()
 
 # iterate through each text grid
 for (file in grid_list[1:3])
@@ -393,8 +439,6 @@ for (file in grid_list[1:3])
         # intervals is now a list of lists of the start and end points of the intervals
         # of the current text grid
         # also labeled with the textgrid interval's label
-    
-    print(intervals)
     
     # create formant object (pitch object?)
     formant_obj = praat("To Formant (keep all)...", 
@@ -431,35 +475,89 @@ for (file in grid_list[1:3])
         end = interval[2]
 
         label = names(start)
+        labels = append(labels, label)
         
-        
-        length = end - start
+        lengthInt = end - start
+        length = append(length, lengthInt)
 
         f_means = formant_means(interval, formant_path)
+        meanF1 = append(meanF1, f_means[1])
+        meanF2 = append(meanF2, f_means[2])
+        meanF3 = append(meanF3, f_means[3])
+        meanF4 = append(meanF4, f_means[4])
+        
         f_pts = f_sample(interval, 11, formant_path)
-        
+        F1.1 = append(F1.1, f_pts[1])
+        F1.2 =  append(F1.2, f_pts[2])
+        F1.3 =  append(F1.3, f_pts[3])
+        F1.4 =  append(F1.4, f_pts[4])
+        F1.5 =  append(F1.5, f_pts[5])
+        F1.6 =  append(F1.6, f_pts[6])
+        F1.7 =  append(F1.7, f_pts[7])
+        F1.8 =  append(F1.8, f_pts[8])
+        F1.9 =  append(F1.9, f_pts[9])
+        F1.10 =  append(F1.10, f_pts[10])
+        F1.11 =  append(F1.11, f_pts[11])
+        F2.1 =  append(F2.1, f_pts[12])
+        F2.2 =  append(F2.2, f_pts[13])
+        F2.3 =  append(F2.3, f_pts[14])
+        F2.4 =  append(F2.4, f_pts[15])
+        F2.5 =  append(F2.5, f_pts[16])
+        F2.6 =  append(F2.6, f_pts[17])
+        F2.7 =  append(F2.7, f_pts[18])
+        F2.8 =  append(F2.8, f_pts[19])
+        F2.9 =  append(F2.9, f_pts[20])
+        F2.10 = append(F2.10, f_pts[21])
+        F2.11 = append(F2.11, f_pts[22])
+        F3.1 = append(F3.1, f_pts[23])
+        F3.2 = append(F3.2, f_pts[24])
+        F3.3 = append(F3.3, f_pts[25])
+        F3.4 = append(F3.4, f_pts[26])
+        F3.5 = append(F3.5, f_pts[27])
+        F3.6 = append(F3.6, f_pts[28])
+        F3.7 = append(F3.7, f_pts[29])
+        F3.8 = append(F3.8, f_pts[30])
+        F3.9 = append(F3.9, f_pts[31])
+        F3.10 = append(F3.10, f_pts[32])
+        F3.11 = append(F3.11, f_pts[33])
+
         qma_amp = quart_med_amp(interval, intensity_path)
-        qma_f0 = quart_med_F0(interval, pitch_path)
+        medianAmplitude = append(medianAmplitude, qma_amp[1])
+        firstQuartileAmplitude = append(firstQuartileAmplitude, qma_amp[2])
+        thirdQuartileAmplitude = append(thirdQuartileAmplitude, qma_amp[3])
         
+        qma_f0 = quart_med_F0(interval, pitch_path)
+        medianF0 = append(medianF0, qma_f0[1])
+        firstQuartileF0 = append(firstQuartileF0, qma_f0[2])
+        thirdQuartileF0 = append(thirdQuartileF0, qma_f0[3])
+
         f0_max = max_F0(interval, pitch_path)
+        maxF0 = append(maxF0, f0_max)
+        
         amp_max = max_amp(interval, intensity_path)
+        maxAmplitude = append(maxAmplitude, amp_max)
         
         f0_mean = mean_F0(interval, pitch_path)
+        meanF0 = append(meanF0, f0_mean)
+        
         amp_mean = mean_amp(interval, intensity_path)
-
-        nums_return = c(length, f0_max, amp_max, f0_mean, amp_mean)
-        names(nums_return) = c("length (s)",
-                               "max f0 (Hz)",
-                               "max amp (dB)",
-                               "mean f0 (Hz)",
-                               "mean amp (dB)")
-
-        print(f_means)
-        print(qma_amp)
-        print(qma_f0)
-        print(nums_return)
-        print(f_pts)
+        meanAmplitude = append(meanAmplitude, amp_mean)
     }
 }
+
+data = data.frame(labels, length,
+                  meanF1, meanF2, meanF3, meanF4,
+                  medianAmplitude, firstQuartileAmplitude, thirdQuartileAmplitude, 
+                  medianF0, firstQuartileF0, thirdQuartileF0, 
+                  maxF0, maxAmplitude, 
+                  meanF0, meanAmplitude, 
+                  F1.1, F1.2, F1.3, F1.4, F1.5, F1.6, F1.7, F1.8, F1.9, F1.10, F1.11, 
+                  F2.1, F2.2, F2.3, F2.4, F2.5, F2.6, F2.7, F2.8, F2.9, F2.10, F2.11, 
+                  F3.1, F3.2, F3.3, F3.4, F3.5, F3.6, F3.7, F3.8, F3.9, F3.10, F3.11) 
+
+# eventual format of data frame will be columns containing 
+# interval name, length, f0 average (then f1-f4), intensity average, 
+# f0 peak, intensity peak, 1 and 3 quartile of F0 and intensity, 
+# and 11 equidistant measures of f1-4
 
 
