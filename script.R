@@ -12,9 +12,28 @@
 
 rm(list = ls())
 
+setwd("C:/Users/Lauren Shin/Desktop")
+
 library(PraatR)
 
-vowels = c("a", "e", "i", "o", "u")
+vowels = c("a", "e", "i", "o", "u", # monophthongs
+           "ua", "ao", "au", "ai", "ae", "ei", "ea", # observed diphthongs
+           "ia", "oa", "oe", "ui", "iu", "ie", "ia",
+           "eo", "eu", "io", "oe", "ou", "ue", "uo") # unobserved diphthongs
+
+# folder where text grids are
+grid_path = "C:/praatR/data/grids/"
+# folder where wav files are
+wav_path = "C:/praatR/data/audio/"
+# temporary file locations for formants, intensities, and pitches
+# create the temp folder yourself, or change the directory to somewhere that isn't the grid or wav path
+formant_path = "C:/praatR/data/temp/formant.Matrix"
+intensity_path = "C:/praatR/data/temp/intensity.Matrix"
+pitch_path = "C:/praatR/data/temp/pitch.Matrix"
+
+# create list of all files in directory
+grid_list = list.files(grid_path)
+wav_list = list.files(wav_path)
 
 # when passed a path of a text grid
 # returns label, start and stop time, as well as adjacent labels
@@ -337,16 +356,6 @@ interval_split <- function(interval, number_splits)
 #################################################################
 # pulling everything together
 
-grid_path = "C:/praatR/Bitur/grids/"
-wav_path = "C:/praatR/Bitur/audio/"
-formant_path = "C:/praatR/Bitur/temp/formant.Matrix"
-intensity_path = "C:/praatR/Bitur/temp/intensity.Matrix"
-pitch_path = "C:/praatR/Bitur/temp/pitch.Matrix"
-
-# create list of all files in directory
-grid_list = list.files(grid_path)
-wav_list = list.files(wav_path)
-
 word = c()
 label = c()
 beforeLabel = c()
@@ -401,141 +410,151 @@ meanF0 = c()
 meanAmplitude = c()
 
 # iterate through each text grid
-for (file in grid_list[1:3])
+for (file in grid_list)
 {
-    fileName = substr(file, 1, length(file) + 8); fileName
+    fileName = sub('\\.TextGrid$', '', file)
     
-    # create full path for text grid file
-    # ie "C:/praatR/Bitur/grids/ + awaga-DM-3.TextGrid"
-    temp_grid = paste(grid_path, file, sep = "")
-    
-    # full path for wav file
-    # assuming corresponding wav file name for textgrid...
-        # to do -- figure out how to safeguard against missing/extraneous files?
-    # ex "C:/praatR/Bitur/audio/ + awaga-DM-3.TextGrid - .TextGrid + wav
-    temp_wav = paste(wav_path, 
-                     fileName, 
-                     ".wav", 
-                     sep = "")
-    
-    # getting start/end times of intervals in the file
-    intervals = get_start_end(temp_grid)
-        # intervals is now a list of lists of the start and end points of the intervals
-        # of the current text grid
-        # also labeled with the textgrid interval's label
-    
-    # create formant object (pitch object?)
-    formant_obj = praat("To Formant (keep all)...", 
-                        list(0, # time step
-                             5, # max num formants
-                             5500, # max formant hz
-                             0.025, # window length
-                             50), # pre-emphasis hz
-                        input = temp_wav,
-                        overwrite = TRUE,
-                        output = formant_path)
-    
-    # create intensity object
-    intensity = praat("To Intensity...", 
-                      list(100, # minumum pitch
-                           0, # time step (0 auto)
-                           "yes"), # subtract mean
-                      input = temp_wav,
-                      overwrite = TRUE,
-                      output = intensity_path)
-    
-    # create pitch object
-    pitch_obj = praat("To Pitch...", 
-                      list(0, # time step
-                           75, # pitch floor
-                           600), # pitch ceiling
-                      input = temp_wav,
-                      overwrite = TRUE,
-                      output = pitch_path)
-    
-    for (interval in intervals)
+    if (paste(fileName, ".wav", sep = "") %in% wav_list)
     {
-        word = append(word, fileName)
+        # print function just to check progress... 
         
-        start = as.numeric(interval[1])
-        end = as.numeric(interval[2])
+        print(fileName)
+        # create full path for text grid file
+        # ie "C:/praatR/Bitur/grids/ + awaga-DM-3.TextGrid"
+        temp_grid = paste(grid_path, file, sep = "")
         
-        interval_list = c(start, end)
+        # full path for wav file
+        # assuming corresponding wav file name for textgrid...
+            # to do -- figure out how to safeguard against missing/extraneous files?
+        # ex "C:/praatR/Bitur/audio/ + awaga-DM-3.TextGrid - .TextGrid + wav
+        temp_wav = paste(wav_path, 
+                         fileName, 
+                         ".wav", 
+                         sep = "")
         
-        label = append(label, interval[4])
-        beforeLabel = append(beforeLabel, interval[3])
-        afterLabel = append(afterLabel, interval[5])
+        # getting start/end times of intervals in the file
+        intervals = get_start_end(temp_grid)
+            # intervals is now a list of lists of the start and end points of the intervals
+            # of the current text grid
+            # also labeled with the textgrid interval's label
         
-        lengthInt = end - start
-        length = append(length, lengthInt)
-
-        f_means = formant_means(interval_list, formant_path)
-        meanF1 = append(meanF1, f_means[1])
-        meanF2 = append(meanF2, f_means[2])
-        meanF3 = append(meanF3, f_means[3])
-        meanF4 = append(meanF4, f_means[4])
-
-        f_pts = f_sample(interval_list, 11, formant_path)
-        F1.1 = append(F1.1, f_pts[1])
-        F1.2 = append(F1.2, f_pts[2])
-        F1.3 = append(F1.3, f_pts[3])
-        F1.4 = append(F1.4, f_pts[4])
-        F1.5 = append(F1.5, f_pts[5])
-        F1.6 = append(F1.6, f_pts[6])
-        F1.7 = append(F1.7, f_pts[7])
-        F1.8 = append(F1.8, f_pts[8])
-        F1.9 = append(F1.9, f_pts[9])
-        F1.10 = append(F1.10, f_pts[10])
-        F1.11 = append(F1.11, f_pts[11])
-        F2.1 = append(F2.1, f_pts[12])
-        F2.2 = append(F2.2, f_pts[13])
-        F2.3 = append(F2.3, f_pts[14])
-        F2.4 = append(F2.4, f_pts[15])
-        F2.5 = append(F2.5, f_pts[16])
-        F2.6 = append(F2.6, f_pts[17])
-        F2.7 = append(F2.7, f_pts[18])
-        F2.8 = append(F2.8, f_pts[19])
-        F2.9 = append(F2.9, f_pts[20])
-        F2.10 = append(F2.10, f_pts[21])
-        F2.11 = append(F2.11, f_pts[22])
-        F3.1 = append(F3.1, f_pts[23])
-        F3.2 = append(F3.2, f_pts[24])
-        F3.3 = append(F3.3, f_pts[25])
-        F3.4 = append(F3.4, f_pts[26])
-        F3.5 = append(F3.5, f_pts[27])
-        F3.6 = append(F3.6, f_pts[28])
-        F3.7 = append(F3.7, f_pts[29])
-        F3.8 = append(F3.8, f_pts[30])
-        F3.9 = append(F3.9, f_pts[31])
-        F3.10 = append(F3.10, f_pts[32])
-        F3.11 = append(F3.11, f_pts[33])
-
-        qma_amp = quart_med_amp(interval_list, intensity_path)
-        medianAmplitude = append(medianAmplitude, qma_amp[1])
-        firstQuartileAmplitude = append(firstQuartileAmplitude, qma_amp[2])
-        thirdQuartileAmplitude = append(thirdQuartileAmplitude, qma_amp[3])
-
-        qma_f0 = quart_med_F0(interval_list, pitch_path)
-        medianF0 = append(medianF0, qma_f0[1])
-        firstQuartileF0 = append(firstQuartileF0, qma_f0[2])
-        thirdQuartileF0 = append(thirdQuartileF0, qma_f0[3])
-
-        f0_max = max_F0(interval_list, pitch_path)
-        maxF0 = append(maxF0, f0_max)
-
-        amp_max = max_amp(interval_list, intensity_path)
-        maxAmplitude = append(maxAmplitude, amp_max)
-
-        f0_mean = mean_F0(interval_list, pitch_path)
-        meanF0 = append(meanF0, f0_mean)
-
-        amp_mean = mean_amp(interval_list, intensity_path)
-        meanAmplitude = append(meanAmplitude, amp_mean)
+        # create formant object (pitch object?)
+        formant_obj = praat("To Formant (keep all)...", 
+                            list(0, # time step
+                                 5, # max num formants
+                                 5500, # max formant hz
+                                 0.025, # window length
+                                 50), # pre-emphasis hz
+                            input = temp_wav,
+                            overwrite = TRUE,
+                            output = formant_path)
+        
+        # create intensity object
+        intensity = praat("To Intensity...", 
+                          list(100, # minumum pitch
+                               0, # time step (0 auto)
+                               "yes"), # subtract mean
+                          input = temp_wav,
+                          overwrite = TRUE,
+                          output = intensity_path)
+        
+        # create pitch object
+        pitch_obj = praat("To Pitch...", 
+                          list(0, # time step
+                               75, # pitch floor
+                               600), # pitch ceiling
+                          input = temp_wav,
+                          overwrite = TRUE,
+                          output = pitch_path)
+        
+        for (interval in intervals)
+        {
+            word = append(word, fileName)
+            
+            start = as.numeric(interval[1])
+            end = as.numeric(interval[2])
+            
+            interval_list = c(start, end)
+            
+            label = append(label, interval[4])
+            beforeLabel = append(beforeLabel, interval[3])
+            afterLabel = append(afterLabel, interval[5])
+            
+            lengthInt = end - start
+            length = append(length, lengthInt)
+    
+            f_means = formant_means(interval_list, formant_path)
+            meanF1 = append(meanF1, f_means[1])
+            meanF2 = append(meanF2, f_means[2])
+            meanF3 = append(meanF3, f_means[3])
+            meanF4 = append(meanF4, f_means[4])
+    
+            f_pts = f_sample(interval_list, 11, formant_path)
+            F1.1 = append(F1.1, f_pts[1])
+            F1.2 = append(F1.2, f_pts[2])
+            F1.3 = append(F1.3, f_pts[3])
+            F1.4 = append(F1.4, f_pts[4])
+            F1.5 = append(F1.5, f_pts[5])
+            F1.6 = append(F1.6, f_pts[6])
+            F1.7 = append(F1.7, f_pts[7])
+            F1.8 = append(F1.8, f_pts[8])
+            F1.9 = append(F1.9, f_pts[9])
+            F1.10 = append(F1.10, f_pts[10])
+            F1.11 = append(F1.11, f_pts[11])
+            F2.1 = append(F2.1, f_pts[12])
+            F2.2 = append(F2.2, f_pts[13])
+            F2.3 = append(F2.3, f_pts[14])
+            F2.4 = append(F2.4, f_pts[15])
+            F2.5 = append(F2.5, f_pts[16])
+            F2.6 = append(F2.6, f_pts[17])
+            F2.7 = append(F2.7, f_pts[18])
+            F2.8 = append(F2.8, f_pts[19])
+            F2.9 = append(F2.9, f_pts[20])
+            F2.10 = append(F2.10, f_pts[21])
+            F2.11 = append(F2.11, f_pts[22])
+            F3.1 = append(F3.1, f_pts[23])
+            F3.2 = append(F3.2, f_pts[24])
+            F3.3 = append(F3.3, f_pts[25])
+            F3.4 = append(F3.4, f_pts[26])
+            F3.5 = append(F3.5, f_pts[27])
+            F3.6 = append(F3.6, f_pts[28])
+            F3.7 = append(F3.7, f_pts[29])
+            F3.8 = append(F3.8, f_pts[30])
+            F3.9 = append(F3.9, f_pts[31])
+            F3.10 = append(F3.10, f_pts[32])
+            F3.11 = append(F3.11, f_pts[33])
+    
+            qma_amp = quart_med_amp(interval_list, intensity_path)
+            medianAmplitude = append(medianAmplitude, qma_amp[1])
+            firstQuartileAmplitude = append(firstQuartileAmplitude, qma_amp[2])
+            thirdQuartileAmplitude = append(thirdQuartileAmplitude, qma_amp[3])
+    
+            qma_f0 = quart_med_F0(interval_list, pitch_path)
+            medianF0 = append(medianF0, qma_f0[1])
+            firstQuartileF0 = append(firstQuartileF0, qma_f0[2])
+            thirdQuartileF0 = append(thirdQuartileF0, qma_f0[3])
+    
+            f0_max = max_F0(interval_list, pitch_path)
+            maxF0 = append(maxF0, f0_max)
+    
+            amp_max = max_amp(interval_list, intensity_path)
+            maxAmplitude = append(maxAmplitude, amp_max)
+    
+            f0_mean = mean_F0(interval_list, pitch_path)
+            meanF0 = append(meanF0, f0_mean)
+    
+            amp_mean = mean_amp(interval_list, intensity_path)
+            meanAmplitude = append(meanAmplitude, amp_mean)
+        }
+    }
+    else
+    {
+        print(fileName + "corresponding wav file not found...")
     }
 }
 
 # dataframe -- each column is a vector created in previous loop
-data = data.frame(label, beforeLabel, afterLabel, length,
+data = data.frame(word, label, beforeLabel, afterLabel, length,
                   meanF1, meanF2, meanF3, meanF4,
                   medianAmplitude, firstQuartileAmplitude, thirdQuartileAmplitude, 
                   medianF0, firstQuartileF0, thirdQuartileF0, 
@@ -546,8 +565,3 @@ data = data.frame(label, beforeLabel, afterLabel, length,
                   F3.1, F3.2, F3.3, F3.4, F3.5, F3.6, F3.7, F3.8, F3.9, F3.10, F3.11) 
 
 write.table(data, sep = ",", row.names = FALSE, file = 'test.csv')
-
-
-# fix making dataframe/writing to csv for lots of files
-# fix interval labels/adjacent labels
-    # separate method for this...
