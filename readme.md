@@ -3,35 +3,15 @@ Uses [PraatR](https://github.com/usagi5886/PraatR), made by [Aaron Albin](http:/
 
 Extracts relevant data from annotated sound files (annotated in Praat) and analyzes that data.  (Formant values, vowel length, average amplitude, etc).
 
-Work in progress right now.  Currently editing functions and getting them to play nicely with each other.  
+This script requires PraatR to be installed and working, as well as R/some editor for R.  (I'm using RSTudio).  Also, there can be no spaces in any directory name.  The spaces will mess up PraatR.  Really.  
 
-This script requires PraatR to be working, as well as R/some text editor for R.  (I'm using RSTudio). 
+You should put TextGrids and wav files in two separate folders.  Only put TextGrids in the TextGrids folder, and only put wav files in the wav folder.  Also have a place to write some temporary files, and a place to output the csv.  
 
-Also, there can be no spaces in any directory name.  The spaces will mess up PraatR.  Really.  
-
-The script will be made of mostly helper functions, for the purposes of modularity.  
+The script can process about 30 file pairs every 15 minutes (8 GB RAM, 2.4 Ghz processor), depending on how many intervals are labeled as vowels per word.  
 
 # Progess
 
-get_length function deleted -- easier to subtract end/start points from get_start_end... 
-
-get_start_end function written and working 
-
-formant_means written and working.  
-
-quart_med_amp written and working
-
-interval_split written and working.  
-
-max_F0 and max_amp written and working.  
-
-mean_F0, mean_amp, and f_samples written and working.  
-
-to do:
-
-* F0 quartile and median measures -- in progress, but totally broken.  
-
-* put gathered data into a dataframe.  
+All functions written and working.  Can add to dataframe and write that dataframe to a csv.  
 
 # usage
 
