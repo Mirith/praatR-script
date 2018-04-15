@@ -7,19 +7,24 @@
 # median amplitude, F0
 # peak F0 and amplitude
 # get label of adjacent segments
-                                                                                       
-############ useful functions ##################################################
 
 rm(list = ls())
-
 setwd("C:/Users/Lauren Shin/Desktop")
-
 library(PraatR)
 
+# labels of intervals to examine
 vowels = c("a", "e", "i", "o", "u", # monophthongs
            "ua", "ao", "au", "ai", "ae", "ei", "ea", # observed diphthongs
            "ia", "oa", "oe", "ui", "iu", "ie", "ia",
            "eo", "eu", "io", "oe", "ou", "ue", "uo") # unobserved diphthongs
+
+# list(time step, pitch floor, pitch ceiling)
+# generally, use 
+# list(0, 75, 300) 
+# for male speakers, and 
+# list(0, 100, 600) 
+# for female speakers
+pitch_range = list(0, 75, 300)
 
 # folder where text grids are
 grid_path = "C:/praatR/data/grids/"
@@ -35,9 +40,14 @@ pitch_path = "C:/praatR/data/temp/pitch.Matrix"
 grid_list = list.files(grid_path)
 wav_list = list.files(wav_path)
 
+############ useful functions ##################################################
+
 # when passed a path of a text grid
-# returns label, start and stop time, as well as adjacent labels
-# only if the interval had a vowel 
+# returns label, start and stop time, as well as adjacent labels of each interval
+# in a list of vectors
+# each entry in the list is a vector containing 
+# label, start time, end time, before label, after label -- in that order
+# only if the interval had a label that matched the contents of the vowel list
 get_start_end <- function(grid_loc)
 {
     # stores the total number of intervals in the text grid
@@ -51,6 +61,7 @@ get_start_end <- function(grid_loc)
     return_list <- vector("list")
     
     # cycles through each interval in the text grid
+    # starting with the second, as the first should be #
     for (interval in c(2:interval_numbers))
     {
         # gets the label of the interval
@@ -85,29 +96,32 @@ get_start_end <- function(grid_loc)
                                             input = grid_loc, 
                                             simplify = TRUE))
             
-            # adds the interval label and start/end points to the end of the list
+            # increments position of where to add the list of label/points
             index = length(return_list) + 1
             
+            # temporary vector to add to list
             to_add_temp = c(interval_start, interval_end, 
                             before_label, interval_label, after_label)
-            names(to_add_temp) = c("label", "start", "end", "before", "after")
+            # names(to_add_temp) = c("label", "start", "end", "before", "after")
             
+            # adds the temporary vector to return_list at correct index
             return_list[[index]] = to_add_temp
         }
     }
     return (return_list)
 }
 
-# extracts formant information given intervals and a formant object
-# formant_loc is the full path of the formant file
-# formants is a list of formants to take the mean of
-# intervals is the output of get_start_end
+# extracts means of f1 through f4
+# formant_loc is the full path of the formant file, ie formant_path
+# fmean_interval is the start and end point of the interval 
+# (usually [2] and [3] from get_start_end)
 # returns a list of lists
 formant_means <- function(fmean_interval, formant_loc)
 {
     # list to return later
     means = c()
     # formants to look at
+    # can be changed if desired
     formants_nums = c(1,2,3,4)
 
     # cycles through each interval in the intervals list
@@ -131,24 +145,24 @@ formant_means <- function(fmean_interval, formant_loc)
         
     }
     
-    # adding sensible names to the output
-    names(adding) = c("F1", "F2", "F3", "F4")
+    # can name the outputs, not necessary though
+    # names(adding) = c("F1", "F2", "F3", "F4")
     
     return (adding)
 }
 
-# quartile and median calculation
-# amplitude
+# quartile and median calculation for amplitude
 # amp_interval is a list of the start and end point of the interval to examine
+# intensity_loc is the full path of the intensity file, ie intensity_path
 quart_med_amp <- function(amp_interval, intensity_loc)
 {
     # divide up desired length by 9 pieces
-    # use interval_split()
-    # and put in list for loop
+        # can divide into however many pieces desired (probably 9 +)
+    # use interval_split() to create 9 points to sample
+    # and put in list for loop to iterate through
     point_list = interval_split(amp_interval, 9)
 
     # empty, to be filled with loop
-    # holds the decibel intensities to be worked with later
     data_points = c()
     
     # loop to fill data_list
@@ -163,34 +177,35 @@ quart_med_amp <- function(amp_interval, intensity_loc)
     }
     
     # sort by value
-    # find median for list
-    # find quartile for list
     sort(data_points)
+    # find median for list
     median = median(data_points, na.rm = TRUE)
-    # 2nd and 4th entries are 1st and 3rd quartile respectively
+    # find quartile for list
+    # returns 4 values -- 2nd and 4th entries are 1st and 3rd quartile respectively
     quantiles = quantile(data_points, na.rm = TRUE)
     
     # adds to list, and labels entries
     return_vals = c(median, quantiles[2], quantiles[4])
-    names(return_vals) = c("amp median", "amp 1st", "amp 3rd")
+    
+    # names(return_vals) = c("amp median", "amp 1st", "amp 3rd")
     
     return (return_vals)
     
 }
 
-# quartile and median calculation
-# F0
+# quartile and median calculation for f0
+# f0_interval is a list of the start and end point of the interval to examine
+# f0_loc is the full path of the pitch file, ie pitch_path
 quart_med_F0 <- function(f0_interval, f0_loc)
 {
-    # accounting for Praats sampling of f0 (75 floor Hz = 40 ms sample)
+    # accounting for Praat's sampling of f0 (75 pitch floor Hz = 40 ms sample)
+    # see http://www.fon.hum.uva.nl/praat/manual/Sound__To_Pitch___.html Pitch floor section
     new_interval = c(f0_interval[1] + .04, f0_interval[2])
+    
     # divide up desired length by 9 pieces
-    # use interval_split()
-    # and put in list for loop
     point_list = interval_split(new_interval, 9)
     
     # empty, to be filled with loop
-    # holds the decibel intensities to be worked with later
     data_points = c()
     
     # loop to fill data_list
@@ -207,27 +222,30 @@ quart_med_F0 <- function(f0_interval, f0_loc)
     }
     
     # sort by value
-    # find median for list
-    # find quartile for list
     sort(data_points)
+    # find median for list
     median = median(data_points, na.rm = TRUE)
-    # 2nd and 4th entries are 1st and 3rd quartile respectively
+    # find quartile for list
+    # returns 4 numbers -- 2nd and 4th entries are 1st and 3rd quartile respectively
     quantiles = quantile(data_points, na.rm = TRUE)
     
-    # adds to list, and labels entries
+    # adds to list
     return_vals = c(median, quantiles[2], quantiles[4])
-    names(return_vals) = c("f0 median", "f0 1st", "f0 3rd")
+    
+    # names(return_vals) = c("f0 median", "f0 1st", "f0 3rd")
     
     return (return_vals)
 }
 
 # returns max F0 value of interval passed 
-# f0_time is a list of the start and end point of the interval to look at
-max_F0 <- function(f0_time, f0_loc)
+# f0_interval is a list of the start and end point of the interval to examine
+# f0_loc is the full path of the pitch file, ie pitch_path
+max_F0 <- function(f0_interval, f0_loc)
 {
-    start = f0_time[1]
-    end = f0_time[2]
+    start = f0_interval[1]
+    end = f0_interval[2]
     
+    # calculates max f0 
     val = as.numeric(praat("Get maximum...",
                      list(start, end, "Hertz", "Parabolic"),
                      input = f0_loc,
@@ -235,13 +253,15 @@ max_F0 <- function(f0_time, f0_loc)
     return (val)
 }
 
-# max amplitude value finder of interval passed 
-# amp_time is a list of the start and end point of the interval to look at 
-max_amp <- function(amp_time, intensity_loc)
+# returns max intensity of interval passed
+# amp_interval is a list of the start and end point of the interval to examine
+# intensity_loc is the full path of the intensity file, ie intensity_path
+max_amp <- function(amp_interval, intensity_loc)
 {
-    start = amp_time[1]
-    end = amp_time[2]
+    start = amp_interval[1]
+    end = amp_interval[2]
     
+    # calculates max intensity
     val = as.numeric(praat("Get maximum...",
                            list(start, end, "Parabolic"),
                            input = intensity_loc,
@@ -249,12 +269,15 @@ max_amp <- function(amp_time, intensity_loc)
     return (val)
 }
 
-# f0_interval is a list of the start and end point of the interval to look at
+# returns mean f0 of interval passed
+# f0_times is a list of the start and end point of the interval to examine
+# f0_loc is the full path of the pitch file, ie pitch_path
 mean_F0 <- function(f0_interval, f0_loc)
 {
     start = f0_interval[1]
     end = f0_interval[2]
     
+    # calculates mean of f0
     mean = as.numeric(praat("Get mean...", 
                             list(start, end, "Hertz"), 
                             input = f0_loc, 
@@ -262,12 +285,15 @@ mean_F0 <- function(f0_interval, f0_loc)
     return (mean)
 }
 
-# amp_interval is a list of the start and end point of the interval to look at
+# returns mean intensity of interval passed
+# amp_times is a list of the start and end point of the interval to examine
+# intensity_loc is the full path of the intensity file, ie intensity_path
 mean_amp <- function(amp_interval, amp_loc)
 {
     start = amp_interval[1]
     end = amp_interval[2]
     
+    # calculates mean amplitude/intensity
     mean = as.numeric(praat("Get mean...", 
                             list(start, end, "energy"), 
                             input = amp_loc, 
@@ -275,11 +301,14 @@ mean_amp <- function(amp_interval, amp_loc)
     return (mean)
 }
 
+# returns a list of samples of f1 through f3
 # f_interval is a list of the start and end point of the interval to look at
+# num_samples is the number of samples to take for the formants
+# formant_loc is the full path of the formant file, ie formant_path
 f_sample <- function(f_interval, num_samples, formant_loc)
 {
+    # splits interval into desired number of sample points
     split = interval_split(c(f_interval[1], f_interval[2]), num_samples)
-    return_vals = vector("list")
     
     f1 = c()
     f2 = c()
@@ -287,16 +316,19 @@ f_sample <- function(f_interval, num_samples, formant_loc)
     
     for (point in split)
     {
+        # record the f1 value at point
         f1_val = as.numeric(praat("Get value at time...", 
                                  list(1, point, "Hertz", "Linear"),
                                  input = formant_loc,
                                  simplify = TRUE))
         
+        # record the f2 value at point
         f2_val = as.numeric(praat("Get value at time...", 
                                   list(2, point, "Hertz", "Linear"),
                                   input = formant_loc,
                                   simplify = TRUE))
         
+        # record the f3 value at point
         f3_val = as.numeric(praat("Get value at time...", 
                                   list(3, point, "Hertz", "Linear"),
                                   input = formant_loc,
@@ -307,19 +339,14 @@ f_sample <- function(f_interval, num_samples, formant_loc)
         f3 = append(f3, f3_val)
     }
     
-    # return_vals[[1]] = f1
-    # return_vals[[2]] = f2
-    # return_vals[[3]] = f3
-    # 
-    # return (return_vals)
-    
     return (c(f1, f2, f3))
 }
 
-# returns a list of points in time split into number_splits points
+# returns a list of points in interval passed, split into number_splits points
 # ex:
 # > interval_split(c(2, 3), 4)
 # > c(2, 2.33, 2.66, 3)
+# interval is the interval to be split, ie a list of two points in time
 interval_split <- function(interval, number_splits)
 {
     # 0 splits = same interval as passed... 
@@ -356,6 +383,7 @@ interval_split <- function(interval, number_splits)
 #################################################################
 # pulling everything together
 
+# vectors to add to in nested loop, to add to dataframe as columns later
 word = c()
 label = c()
 beforeLabel = c()
@@ -409,23 +437,23 @@ maxAmplitude = c()
 meanF0 = c()
 meanAmplitude = c()
 
-# iterate through each text grid
-for (file in grid_list)
+# iterate through each text grid in directory
+# can subset grid_list for testing changes, ie grid_list[1:5]
+for (file in grid_list[1:3])
 {
+    # gets file name minus .TextGrid
     fileName = sub('\\.TextGrid$', '', file)
     
     if (paste(fileName, ".wav", sep = "") %in% wav_list)
     {
-        # print function just to check progress... 
-        
+        # prints file name just to check progress, can comment or delete
         print(fileName)
+        
         # create full path for text grid file
         # ie "C:/praatR/Bitur/grids/ + awaga-DM-3.TextGrid"
         temp_grid = paste(grid_path, file, sep = "")
         
-        # full path for wav file
-        # assuming corresponding wav file name for textgrid...
-            # to do -- figure out how to safeguard against missing/extraneous files?
+        # create full path for wav file
         # ex "C:/praatR/Bitur/audio/ + awaga-DM-3.TextGrid - .TextGrid + wav
         temp_wav = paste(wav_path, 
                          fileName, 
@@ -434,11 +462,8 @@ for (file in grid_list)
         
         # getting start/end times of intervals in the file
         intervals = get_start_end(temp_grid)
-            # intervals is now a list of lists of the start and end points of the intervals
-            # of the current text grid
-            # also labeled with the textgrid interval's label
         
-        # create formant object (pitch object?)
+        # create temporary formant object
         formant_obj = praat("To Formant (keep all)...", 
                             list(0, # time step
                                  5, # max num formants
@@ -449,7 +474,7 @@ for (file in grid_list)
                             overwrite = TRUE,
                             output = formant_path)
         
-        # create intensity object
+        # create temporary intensity object
         intensity = praat("To Intensity...", 
                           list(100, # minumum pitch
                                0, # time step (0 auto)
@@ -458,37 +483,41 @@ for (file in grid_list)
                           overwrite = TRUE,
                           output = intensity_path)
         
-        # create pitch object
+        # create temporary pitch object
         pitch_obj = praat("To Pitch...", 
-                          list(0, # time step
-                               75, # pitch floor
-                               600), # pitch ceiling
+                          pitch_range,
                           input = temp_wav,
                           overwrite = TRUE,
                           output = pitch_path)
         
+        # cycle through each valid (ie labeled with vowel(s)) interval in file
         for (interval in intervals)
         {
+            # append word name to proper vector
             word = append(word, fileName)
             
+            # create proper interval to pass to other functions
             start = as.numeric(interval[1])
             end = as.numeric(interval[2])
-            
             interval_list = c(start, end)
             
+            # append interval labels to proper vector
             label = append(label, interval[4])
             beforeLabel = append(beforeLabel, interval[3])
             afterLabel = append(afterLabel, interval[5])
             
+            # append length to proper vector
             lengthInt = end - start
             length = append(length, lengthInt)
     
+            # calculate and append f1 through f4 means to proper vectors
             f_means = formant_means(interval_list, formant_path)
             meanF1 = append(meanF1, f_means[1])
             meanF2 = append(meanF2, f_means[2])
             meanF3 = append(meanF3, f_means[3])
             meanF4 = append(meanF4, f_means[4])
     
+            # calculate and append f1 through f3 sampled points to proper vectors
             f_pts = f_sample(interval_list, 11, formant_path)
             F1.1 = append(F1.1, f_pts[1])
             F1.2 = append(F1.2, f_pts[2])
@@ -524,32 +553,40 @@ for (file in grid_list)
             F3.10 = append(F3.10, f_pts[32])
             F3.11 = append(F3.11, f_pts[33])
     
+            # calculate and append median, and quartiles of amplitude to proper vector
             qma_amp = quart_med_amp(interval_list, intensity_path)
             medianAmplitude = append(medianAmplitude, qma_amp[1])
             firstQuartileAmplitude = append(firstQuartileAmplitude, qma_amp[2])
             thirdQuartileAmplitude = append(thirdQuartileAmplitude, qma_amp[3])
     
+            # calculate and append median, and quartiles of f0 to proper vector
             qma_f0 = quart_med_F0(interval_list, pitch_path)
             medianF0 = append(medianF0, qma_f0[1])
             firstQuartileF0 = append(firstQuartileF0, qma_f0[2])
             thirdQuartileF0 = append(thirdQuartileF0, qma_f0[3])
     
+            # calculate and append max f0 to proper vector
             f0_max = max_F0(interval_list, pitch_path)
             maxF0 = append(maxF0, f0_max)
     
+            # calculate and append max amplitude to proper vector
             amp_max = max_amp(interval_list, intensity_path)
             maxAmplitude = append(maxAmplitude, amp_max)
     
+            # calculate and append mean f0 to proper vector
             f0_mean = mean_F0(interval_list, pitch_path)
             meanF0 = append(meanF0, f0_mean)
     
+            # calculate and append mean amplitude to proper vector
             amp_mean = mean_amp(interval_list, intensity_path)
             meanAmplitude = append(meanAmplitude, amp_mean)
         }
     }
     else
     {
-        print(fileName + "corresponding wav file not found...")
+        # should only print if textgrid is missing wav file counterpart
+        # if wav files are missing textgrid counterparts, no message will print...
+        print(paste("corresponding wav file not found:", fileName))
     }
 }
 
@@ -564,4 +601,5 @@ data = data.frame(word, label, beforeLabel, afterLabel, length,
                   F2.1, F2.2, F2.3, F2.4, F2.5, F2.6, F2.7, F2.8, F2.9, F2.10, F2.11, 
                   F3.1, F3.2, F3.3, F3.4, F3.5, F3.6, F3.7, F3.8, F3.9, F3.10, F3.11) 
 
+# writes to working directory -- can change it to whatever you want
 write.table(data, sep = ",", row.names = FALSE, file = 'test.csv')
