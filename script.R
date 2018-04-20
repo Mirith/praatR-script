@@ -602,4 +602,4 @@ data = data.frame(word, label, beforeLabel, afterLabel, length,
                   F3.1, F3.2, F3.3, F3.4, F3.5, F3.6, F3.7, F3.8, F3.9, F3.10, F3.11) 
 
 # writes to working directory -- can change it to whatever you want
-write.table(data, sep = ",", row.names = FALSE, file = 'test.csv')
+write.table(data, sep = ",", row.names = FALSE, file = 'PraatRData.csv')
