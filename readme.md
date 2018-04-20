@@ -1,4 +1,7 @@
 # Info 
+
+For details on how to run this script, see [here](https://github.com/Mirith/praatR-script/blob/master/praat%20script%20info.md).  
+
 Uses [PraatR](https://github.com/usagi5886/PraatR), made by [Aaron Albin](http://www.aaronalbin.com/praatr/index.html).  
 
 Extracts relevant data from annotated sound files (annotated in Praat) and analyzes that data.  (Formant values, vowel length, average amplitude, etc).
