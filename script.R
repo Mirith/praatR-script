@@ -115,7 +115,7 @@ get_start_end <- function(grid_loc)
 # formant_loc is the full path of the formant file, ie formant_path
 # fmean_interval is the start and end point of the interval 
 # (usually [2] and [3] from get_start_end)
-# returns a list of lists
+# returns a vector of numbers
 formant_means <- function(fmean_interval, formant_loc)
 {
     # list to return later
@@ -123,9 +123,10 @@ formant_means <- function(fmean_interval, formant_loc)
     # formants to look at
     # can be changed if desired
     formants_nums = c(1,2,3,4)
+    # empty, to return later
+    fmeans = c()
 
     # cycles through each interval in the intervals list
-    adding = c()
     for (formant_number in formants_nums)
     {        
         # gets start point, which should second entry in list
@@ -141,14 +142,14 @@ formant_means <- function(fmean_interval, formant_loc)
                       input = formant_loc,
                       simplify = TRUE))
         
-        adding = append(adding, mean)
+        fmeans = append(fmeans, mean)
         
     }
     
     # can name the outputs, not necessary though
-    # names(adding) = c("F1", "F2", "F3", "F4")
+    # names(fmeans) = c("F1", "F2", "F3", "F4")
     
-    return (adding)
+    return (fmeans)
 }
 
 # quartile and median calculation for amplitude
