@@ -8,9 +8,15 @@
 # peak F0 and amplitude
 # get label of adjacent segments
 
+# special symbols in file names break script... fix?
+
 rm(list = ls())
 setwd("C:/Users/Lauren Shin/Desktop")
 library(PraatR)
+
+# what you want the file name to be
+# it will write to the working directory
+output_file = "vowels.csv"
 
 # labels of intervals to examine
 vowels = c("a", "e", "i", "o", "u", # monophthongs
@@ -27,9 +33,9 @@ vowels = c("a", "e", "i", "o", "u", # monophthongs
 pitch_range = list(0, 75, 300)
 
 # folder where text grids are
-grid_path = "C:/praatR/data/grids/"
+grid_path = "C:/praatR/data/grids/" 
 # folder where wav files are
-wav_path = "C:/praatR/data/audio/"
+wav_path = "C:/praatR/data/wavs/"
 # temporary file locations for formants, intensities, and pitches
 # create the temp folder yourself, or change the directory to somewhere that isn't the grid or wav path
 formant_path = "C:/praatR/data/temp/formant.Matrix"
@@ -37,8 +43,8 @@ intensity_path = "C:/praatR/data/temp/intensity.Matrix"
 pitch_path = "C:/praatR/data/temp/pitch.Matrix"
 
 # create list of all files in directory
-grid_list = list.files(grid_path)
-wav_list = list.files(wav_path)
+grid_list = tolower(list.files(grid_path))
+wav_list = tolower(list.files(wav_path))
 
 ############ useful functions ##################################################
 
@@ -438,12 +444,15 @@ maxAmplitude = c()
 meanF0 = c()
 meanAmplitude = c()
 
+# prints start time of analysis
+print(Sys.time())
+
 # iterate through each text grid in directory
 # can subset grid_list for testing changes, ie grid_list[1:5]
-for (file in grid_list[1:3])
+for (file in grid_list)
 {
     # gets file name minus .TextGrid
-    fileName = sub('\\.TextGrid$', '', file)
+    fileName = sub('\\.textgrid$', '', file)
     
     if (paste(fileName, ".wav", sep = "") %in% wav_list)
     {
@@ -603,4 +612,4 @@ data = data.frame(word, label, beforeLabel, afterLabel, length,
                   F3.1, F3.2, F3.3, F3.4, F3.5, F3.6, F3.7, F3.8, F3.9, F3.10, F3.11) 
 
 # writes to working directory -- can change it to whatever you want
-write.table(data, sep = ",", row.names = FALSE, file = 'PraatRData.csv')
+write.table(data, sep = ",", row.names = FALSE, file = output_file)
