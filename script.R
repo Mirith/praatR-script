@@ -1,17 +1,10 @@
-# goals: 
-# measure F1, F2, F3 11 (?) times equidistant
-# Mean F1, F2, F3, amplitude, F0
-# length
-# 1st quartile amplitude, F0
-# 3rd quartile amplitude, F0
-# median amplitude, F0
-# peak F0 and amplitude
-# get label of adjacent segments
-
 # special symbols in file names break script... fix?
+# make functions more flexible
 
 rm(list = ls())
+# where you want to output the file
 setwd("C:/Users/Lauren Shin/Desktop")
+# loading PraatR
 library(PraatR)
 
 # what you want the file name to be
@@ -24,7 +17,7 @@ vowels = c("a", "e", "i", "o", "u", # monophthongs
            "ia", "oa", "oe", "ui", "iu", "ie", "ia",
            "eo", "eu", "io", "oe", "ou", "ue", "uo") # unobserved diphthongs
 
-# list(time step, pitch floor, pitch ceiling)
+# format: list(time step, pitch floor, pitch ceiling)
 # generally, use 
 # list(0, 75, 300) 
 # for male speakers, and 
@@ -33,7 +26,8 @@ vowels = c("a", "e", "i", "o", "u", # monophthongs
 pitch_range = list(0, 75, 300)
 
 # folder where text grids are
-grid_path = "C:/praatR/data/grids/" 
+# make sure to include ending slash!  
+grid_path = "C:/praatR/data/grids" 
 # folder where wav files are
 wav_path = "C:/praatR/data/wavs/"
 # temporary file locations for formants, intensities, and pitches
@@ -43,7 +37,9 @@ intensity_path = "C:/praatR/data/temp/intensity.Matrix"
 pitch_path = "C:/praatR/data/temp/pitch.Matrix"
 
 # create list of all files in directory
+# textgrids
 grid_list = tolower(list.files(grid_path))
+# and wavs
 wav_list = tolower(list.files(wav_path))
 
 ############ useful functions ##################################################
@@ -57,7 +53,7 @@ wav_list = tolower(list.files(wav_path))
 get_start_end <- function(grid_loc)
 {
     # stores the total number of intervals in the text grid
-    interval_numbers = as.numeric(
+    interval_numbers = as.numeric( # converst string output to a number
         praat("Get number of intervals...", # praat command
               list(1), # 1 = the number of the tier to look at
               input = grid_loc, # path of text grid
@@ -390,7 +386,7 @@ interval_split <- function(interval, number_splits)
 #################################################################
 # pulling everything together
 
-# vectors to add to in nested loop, to add to dataframe as columns later
+# vectors to add data to in nested loop, to add to dataframe as columns later
 word = c()
 label = c()
 beforeLabel = c()
@@ -444,7 +440,7 @@ maxAmplitude = c()
 meanF0 = c()
 meanAmplitude = c()
 
-# prints start time of analysis
+# prints start time of analysis just to see when script started running
 print(Sys.time())
 
 # iterate through each text grid in directory
@@ -454,13 +450,14 @@ for (file in grid_list)
     # gets file name minus .TextGrid
     fileName = sub('\\.textgrid$', '', file)
     
+    # if there's a matching wav file to look at
     if (paste(fileName, ".wav", sep = "") %in% wav_list)
     {
         # prints file name just to check progress, can comment or delete
         print(fileName)
         
         # create full path for text grid file
-        # ie "C:/praatR/Bitur/grids/ + awaga-DM-3.TextGrid"
+        # ex "C:/praatR/Bitur/grids/ + awaga-DM-3.TextGrid"
         temp_grid = paste(grid_path, file, sep = "")
         
         # create full path for wav file
@@ -495,7 +492,7 @@ for (file in grid_list)
         
         # create temporary pitch object
         pitch_obj = praat("To Pitch...", 
-                          pitch_range,
+                          pitch_range, # pitch range, set at top of this file
                           input = temp_wav,
                           overwrite = TRUE,
                           output = pitch_path)
@@ -611,5 +608,5 @@ data = data.frame(word, label, beforeLabel, afterLabel, length,
                   F2.1, F2.2, F2.3, F2.4, F2.5, F2.6, F2.7, F2.8, F2.9, F2.10, F2.11, 
                   F3.1, F3.2, F3.3, F3.4, F3.5, F3.6, F3.7, F3.8, F3.9, F3.10, F3.11) 
 
-# writes to working directory -- can change it to whatever you want
+# writes dataframe as csv to working directory
 write.table(data, sep = ",", row.names = FALSE, file = output_file)
