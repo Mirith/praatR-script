@@ -146,7 +146,7 @@ For the purposes of this section and its subsections, files will be assumed to f
 
 Functions are listed in order of appearance in the script.  
 
-## get_start_end
+## get_start_end(grid_loc)
 
 **Goal**: Extract the label, adjacent labels, and start/stop point of an interval, if it is labeled as a monopthong/diphthong.  
 
@@ -177,7 +177,7 @@ output:
 
 Output list/vectors will be all strings.  You should (and the script does) use as.numeric(str) to convert to floats before trying computation with the values.  
 
-## formant_means
+## formant_means(fmean_interval, formant_loc)
 
 **Goal**: Extract the mean formant values for formant 1 through formant 4.  
 
@@ -202,7 +202,7 @@ output:
 
 na
 
-## quart_med_amp
+## quart_med_amp(amp_interval, intensity_loc)
 
 **Goal**:  Extract the first and third quartiles as well as the median amplitude of an interval.  
 
@@ -229,7 +229,7 @@ The name is quartile-median-amplitude, but shortened.
 
 This function uses *interval_split*.  
 
-## quart_med_F0
+## quart_med_F0(f0_interval, f0_loc)
 
 **Goals**: Extract the first and third quartiles as well as the median F0 of an interval.  
 
@@ -258,7 +258,7 @@ see http://www.fon.hum.uva.nl/praat/manual/Sound__To_Pitch___.html Pitch floor s
 
 This function uses *interval_split*.  
 
-## max_F0
+## max_F0(f0_interval, f0_loc)
 
 **Goal**: Return the maximum value of F0 in an interval.  
 
@@ -283,7 +283,7 @@ output:
 
 na
 
-## max_amp
+## max_amp(amp_interval, intensity_loc)
 
 **Goal:** Return the maximum intensity/amplitude value in an interval.  
 
@@ -308,7 +308,7 @@ output:
 
 na
 
-## mean_F0
+## mean_F0(f0_interval, f0_loc)
 
 **Goal**: Return the mean F0 in an interval.  
 
@@ -333,7 +333,7 @@ output:
 
 na
 
-## mean_amp
+## mean_amp(amp_interval, intensity_loc)
 
 **Goal**: Return the mean amplitude/intensity in an interval.  
 
@@ -358,7 +358,7 @@ output:
 
 na
 
-## f_sample
+## f_sample(f_interval, num_samples, formant_loc)
 
 **Goal**: Sample values of formant at a given number of points, equidistant.  
 
@@ -390,7 +390,7 @@ This function uses *interval_split*
 
 Will rework this a little, as it is *very* messy and silly in regards to the return value.  Or will call once per formant, and four times per script loop to neaten it up.  Returning a list of vectors as I did in other functions messed up adding things to the dataframe, for some reason.  
 
-## interval_split
+## interval_split(interval, number_splits)
 
 **Goal**: Given the start and end point of an interval, return a list with equidistant points, endpoints included.  
 
